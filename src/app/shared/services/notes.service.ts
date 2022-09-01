@@ -89,6 +89,6 @@ export class NotesService {
         content: "Content 2",
         test: "3"
       }
-    ].slice(0, 14));
+    ].slice(0, 7));
   }
 }

@@ -13,7 +13,7 @@ import {Note} from "../../../shared/models/note.model";
 import {BehaviorSubject, debounceTime, delay, skip, startWith, Subject} from "rxjs";
 import {rxsize} from "../../../shared/utils/rxsizable.utils";
 
-const OFFSET = 30;
+const OFFSET = 35;
 
 enum InsertMode {
   right,
@@ -36,6 +36,7 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     return [...Array(this.colsCount).keys()];
   }
 
+  public showSpots: number[][] = [];
   public availableSpots: number[][] = [];
 
   constructor(private notesService: NotesService,
@@ -100,10 +101,8 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       const noteWidth = note.clientWidth;
       const rightSpot = [left + noteWidth, top];
       const bottomSpot = [left, top + note.clientHeight];
-      const noteRightSide = noteWidth + note.offsetLeft;
+      const noteRightSide = noteWidth + left;
 
-      // we have got a bit conclusion: only the first row can put notes to the right,
-      // other rows can only do this below them
       if (firstRow && noteRightSide + noteWidth > notesContainerWidth) {
         firstRow = false;
       }
@@ -137,6 +136,8 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       }
     }
     this.cdr.markForCheck();
+    this.showSpots = this.availableSpots;
+    console.log(this.availableSpots);
     this.availableSpots = [];
   }
 }
