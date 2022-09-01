@@ -36,8 +36,7 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     return [...Array(this.colsCount).keys()];
   }
 
-  public showSpots: number[][] = [];
-  public availableSpots: number[][] = [];
+  private availableSpots: number[][] = [];
 
   constructor(private notesService: NotesService,
               private cdr: ChangeDetectorRef,
@@ -46,11 +45,10 @@ export class NotesListComponent implements OnInit, AfterViewInit {
 
   public ngOnInit(): void {
     rxsize(this.ref.nativeElement)
-      .pipe(skip(1), debounceTime(100))
+      .pipe(skip(1), debounceTime(75))
       .subscribe(() => this.updateView());
   }
 
-  // still problem that we init the component, move a bit, time passes it updates the init and then it update because of resize
   public ngAfterViewInit(): void {
     this.notesCards.changes
       .pipe(startWith(this.notesCards))
@@ -88,7 +86,6 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       note.style.left = `${left}px`;
       note.style.top = `${top}px`;
 
-      // remove used spot
       let idx = 0;
       for (const [i, temp] of this.availableSpots.entries()) {
         if (temp[0] === spot[0] && temp[1] === spot[1]) {
@@ -136,8 +133,6 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       }
     }
     this.cdr.markForCheck();
-    this.showSpots = this.availableSpots;
-    console.log(this.availableSpots);
     this.availableSpots = [];
   }
 }
