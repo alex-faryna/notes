@@ -1,12 +1,19 @@
-<!-- ng-container *ngIf="notes$ | async as notes">
-  <app-note-list-item *ngFor="let note of notes"
+<ng-container *ngIf="notes$ | async as notes">
+  <app-note-list-item *ngFor="let note of notes; trackBy: trackByMethod; let i = index"
+                      #noteCard
                       [title]="note.title"
                       [content]="note.content"
                       [test]="note?.test"
+                      [test2]="note?.['test2']"
   ></app-note-list-item>
-</ng-container-->
-
-<ng-container *ngIf="notes$ | async as notes">
+</ng-container>
+<span *ngFor="let spot of availableSpots; let i = index"
+      class="spot"
+      [style]="{left: spot[0] + 'px', top: spot[1] + 'px'}"
+>
+  {{i}}
+</span>
+<!-- ng-container *ngIf="notes$ | async as notes">
   <div *ngFor="let col of cols; let i = index">
     <span class="col">
       <ng-container *ngFor="let note of notes; let ni = index">
@@ -18,4 +25,4 @@
       </ng-container>
     </span>
   </div>
-</ng-container>
+</ng-container -->
