@@ -10,7 +10,8 @@ import {
 import {NotesService} from "../../../shared/services/notes.service";
 import {NoteListItemComponent} from "./note-list-item/note-list-item.component";
 import {Note} from "../../../shared/models/note.model";
-import {BehaviorSubject, delay, startWith} from "rxjs";
+import {BehaviorSubject, debounceTime, delay, skip, startWith, Subject} from "rxjs";
+import {rxsize} from "../../../shared/utils/rxsizable.utils";
 
 const OFFSET = 30;
 
@@ -35,24 +36,24 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     return [...Array(this.colsCount).keys()];
   }
 
-  private observer!: MutationObserver;
   public availableSpots: number[][] = [];
 
   constructor(private notesService: NotesService,
               private cdr: ChangeDetectorRef,
-              private zone: NgZone,
               private ref: ElementRef) {
   }
 
   public ngOnInit(): void {
-    //this.observer = new MutationObserver(() => { this.updateView() });
-    // this.observer.observe(this.ref.nativeElement, {childList: true});
+    rxsize(this.ref.nativeElement)
+      .pipe(skip(1), debounceTime(100))
+      .subscribe(() => this.updateView());
   }
 
+  // still problem that we init the component, move a bit, time passes it updates the init and then it update because of resize
   public ngAfterViewInit(): void {
-    this.notesCards.changes.pipe(
-      startWith(this.notesCards),
-    ).subscribe(() => this.updateView());
+    this.notesCards.changes
+      .pipe(startWith(this.notesCards))
+      .subscribe(() => this.updateView());
   }
 
   public trackByMethod(index: number, el: Note): number {
@@ -66,8 +67,6 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     for (let note of this.ref.nativeElement.children) {
       if (this.availableSpots.length === 0) {
         this.availableSpots = [[note.clientWidth, 0], [0, note.clientHeight]];
-        console.log(this.availableSpots);
-        this.cdr.markForCheck();
         continue;
       }
 
@@ -102,9 +101,6 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       const rightSpot = [left + noteWidth, top];
       const bottomSpot = [left, top + note.clientHeight];
       const noteRightSide = noteWidth + note.offsetLeft;
-      console.dir(note);
-      console.log(notesContainerWidth);
-      console.log(noteRightSide);
 
       // we have got a bit conclusion: only the first row can put notes to the right,
       // other rows can only do this below them
@@ -139,8 +135,8 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       } else if(insertMode === InsertMode.bottom) {
         this.availableSpots.push(bottomSpot);
       }
-      console.log(this.availableSpots);
-      this.cdr.markForCheck();
     }
+    this.cdr.markForCheck();
+    this.availableSpots = [];
   }
 }
