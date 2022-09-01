@@ -38,6 +38,37 @@ export class NotesListComponent implements OnInit, AfterViewInit {
 
   private availableSpots: number[][] = [];
 
+  // test
+  public data: Note[][] = [];
+  // ngFor col of data
+  // ngFor note of col - already sorted out
+
+
+  // 1st variant: have width, have n cols, insert the components into the columns -
+  // drawback -have to init components here which i don't really want
+
+  // 2nd variant: thinking
+  // just thinking: mb create own ngFor with the heights?
+
+  // 3d variant:
+  // we have a stream, and each new value goes to the process of sleecting which column to use
+  // so we add new value, the stream adds new to the dom but burh wtf
+  // (i mean we have a new value, then the dom needs to inset it so i checks before adding this concrete value
+
+  // flex
+  // cols min 200pc max 250px flex 1 0 auto - for columns
+
+
+  // maybe something like a directive which you give to 3 divs (columns) and it keeps a shared state,
+  // so when we add a val, the other two know i has added
+  // or at least so it can keep the top heights for everyone so they know
+  // something similar to open mpi, where you have data [5,6,7] and each col has access to all data, so the first one know it has id 1, and his value is 5, the smaller one so he inserts
+  // it means they know others know
+
+  // ngfor with shared state or smth
+
+  // ngfor performance bor please
+
   constructor(private notesService: NotesService,
               private cdr: ChangeDetectorRef,
               private ref: ElementRef) {

@@ -21,6 +21,7 @@ export class NotesService {
         title: "Note 2",
         content: "Content 2",
         test: "2",
+        test2: "2",
       },
       {
         id: 2,
@@ -32,6 +33,7 @@ export class NotesService {
         title: "Note 4",
         content: "Content 2",
         test: "2",
+        test2: "2",
       },
       {
         id: 4,
