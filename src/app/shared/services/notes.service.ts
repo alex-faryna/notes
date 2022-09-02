@@ -91,6 +91,6 @@ export class NotesService {
         content: "Content 2",
         test: "3"
       }
-    ].slice(0, 7));
+    ]);//.slice(0, 7)
   }
 }
