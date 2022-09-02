@@ -44,6 +44,7 @@ export class AppComponent implements OnInit {
       const grid = document.getElementsByClassName("main")[0] as HTMLElement;
       const animate = wrapGrid(grid, {
         duration: 250,
+        stagger: 5,
         onStart: () => this.resizing = true,
         onEnd: () => this.resizing = false,
       }).forceGridAnimation;
@@ -64,7 +65,7 @@ export class AppComponent implements OnInit {
 //he needs resize, but we may not need it if we have the width of the note the same thus saving a lot!
 // think about how to make animation and also check because i think the prev version was kinda smoother?
 function resizeAllGridItems(){
-  console.log("ok");
+  console.log("resize all");
   const allItems = document.getElementsByClassName("bl") as unknown as HTMLElement[];
   const grid = document.getElementsByClassName("main")[0] as HTMLElement;
 
@@ -77,20 +78,4 @@ function resizeAllGridItems(){
 function resizeGridItem(grid:HTMLElement, rowHeight: number, item: HTMLElement){
   const rowSpan = Math.ceil((item.firstElementChild!.clientHeight + 10) / rowHeight);
   item.style.gridRowEnd = `span ${rowSpan}`;
-}
-
-function throttle(callback: Function, limit: number) {
-  var wait = false; // Initially, we're not waiting
-  return function() {
-    // We return a throttled function
-    if (!wait) {
-      // If we're not waiting
-      callback.call(null); // Execute users function
-      wait = true; // Prevent future invocations
-      setTimeout(function() {
-        // After a period of time
-        wait = false; // And allow future invocations
-      }, limit);
-    }
-  };
 }
