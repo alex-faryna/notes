@@ -1,10 +1,6 @@
 :host {
-  /*position: absolute;
-  transition: all 0.175s linear;
-  padding-top: 10px;
-  padding-left: 10px;
-  */
-  .mat-card {
-    // min-width: 150px;
-  }
+  display: block;
+  padding: 5px;
+  width: 250px;
+  box-sizing: border-box;
 }

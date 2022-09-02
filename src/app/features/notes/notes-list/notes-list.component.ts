@@ -1,5 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit} from '@angular/core';
-import {distinctUntilChanged, filter, map, tap, throttleTime} from "rxjs";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {debounceTime, distinctUntilChanged, filter, map, tap} from "rxjs";
 import {rxsize} from "../../../shared/utils/rxsizable.utils";
 import {wrapGrid} from "animate-css-grid";
 import {NotesService} from "../../../shared/services/notes.service";
@@ -12,17 +12,15 @@ import {Note} from "../../../shared/models/note.model";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotesListComponent implements OnInit {
+  @ViewChild("notesContainer", {static: true}) public notesContainer!: ElementRef;
   public cols = 1;
-
-  public arr(n: number): number[] {
-    return [...Array(n).keys()];
-  }
   public notes$ = this.notesService.getNotesList();
 
   private resizing = false;
-  private resize$ = rxsize(this.ref.nativeElement).pipe(
-    throttleTime(25),
+  private colNum$ = rxsize(this.ref.nativeElement).pipe(
+    debounceTime(200),
     filter(arr => !this.resizing && !!arr?.length),
+    tap(() => this.resizeAllGridItems()),
     map(([rect]) => Math.floor(rect.contentRect.width / 250) || 1),
     distinctUntilChanged(),
   );
@@ -32,42 +30,30 @@ export class NotesListComponent implements OnInit {
               private notesService: NotesService) {
   }
 
-  public ngOnInit() {
-    setTimeout(() => {
-      const grid = document.getElementsByClassName("main")[0] as HTMLElement;
-      const animate = wrapGrid(grid, {
-        duration: 250,
-        stagger: 5,
-        onStart: () => this.resizing = true,
-        onEnd: () => this.resizing = false,
-      }).forceGridAnimation;
-      this.resize$.subscribe(val => {
-        resizeAllGridItems();
-        this.cols = val;
-        this.cdr.detectChanges();
-        console.log("animate");
-        animate();
-      });
-    })
+  public ngOnInit(): void {
+    const animate = wrapGrid(this.notesContainer.nativeElement, {
+      duration: 250,
+      stagger: 5,
+      onStart: () => this.resizing = true,
+      onEnd: () => this.resizing = false,
+    }).forceGridAnimation;
+    this.colNum$.subscribe(val => {
+      this.cols = val;
+      this.cdr.detectChanges();
+      animate();
+    });
+    // i guess that when data changes we need to resize them all and also when resize is small need to resize too
   }
 
   public trackByMethod(index: number, el: Note): number {
     return el.id;
   }
-}
 
-function resizeAllGridItems() {
-  console.log("resize all");
-  const allItems = document.getElementsByClassName("bl") as unknown as HTMLElement[];
-  const grid = document.getElementsByClassName("main")[0] as HTMLElement;
-
-  const rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
-  for (let x = 0; x < allItems.length; x++) {
-    resizeGridItem(grid, rowHeight, allItems[x]);
+  private resizeAllGridItems(): void {
+    console.log("resize all");
+    const allItems: unknown = document.getElementsByTagName("app-note-list-item");
+    Array.from(allItems as HTMLElement[]).forEach(item => {
+      item.style.gridRowEnd = `span ${item.firstElementChild!.clientHeight + 10}`;
+    })
   }
-}
-
-function resizeGridItem(grid: HTMLElement, rowHeight: number, item: HTMLElement) {
-  const rowSpan = Math.ceil((item.firstElementChild!.clientHeight + 10) / rowHeight);
-  item.style.gridRowEnd = `span ${rowSpan}`;
 }
