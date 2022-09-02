@@ -2,5 +2,18 @@
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
+
+  .main {
+      width: 100%;
+      display: grid;
+      grid-gap: 0;
+      grid-template-columns: repeat(auto-fill, minmax(250px,1fr));
+      grid-auto-rows: 10px;
+  }
+
+  .bl {
+    border: 1px solid black;
+    background: wheat;
+    grid-row-end: span 3;
+  }
 }
