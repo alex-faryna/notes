@@ -1,6 +1,6 @@
 import {Observable} from "rxjs";
 
-export const rxsize = (elem: Element) => {
+export const rxsize = (elem: Element): Observable<ResizeObserverEntry[]> => {
   return new Observable(subscriber => {
     const ro = new ResizeObserver(entries => {
       subscriber.next(entries);

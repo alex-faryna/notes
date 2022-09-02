@@ -1,21 +1,58 @@
-import {AfterViewInit, Component} from '@angular/core';
-import {startWith} from "rxjs";
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit} from '@angular/core';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  fromEvent,
+  map,
+  Observable,
+  startWith,
+  tap,
+  throttleTime
+} from "rxjs";
+import {wrapGrid} from "animate-css-grid";
+import {rxsize} from "./shared/utils/rxsizable.utils";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewInit {
-  title = 'notes';
+export class AppComponent implements OnInit {
+  title = '2';
 
+  public cols = 1;
   public arr(n: number): number[] {
     return [...Array(n).keys()];
   }
 
-  public ngAfterViewInit(): void {
+  private resizing = false;
+  private resize$ = rxsize(this.ref.nativeElement).pipe(
+    throttleTime(25),
+    filter(arr => !this.resizing && !!arr?.length),
+    tap(() => resizeAllGridItems()),
+    map(([rect]) => Math.floor(rect.contentRect.width / 300) || 1),
+    distinctUntilChanged(),
+  );
+
+  constructor(private ref: ElementRef,
+              private cdr: ChangeDetectorRef) {
+  }
+
+  public ngOnInit() {
     setTimeout(() => {
-      resizeAllGridItems();
+      const grid = document.getElementsByClassName("main")[0] as HTMLElement;
+      const animate = wrapGrid(grid, {
+        duration: 250,
+        onStart: () => this.resizing = true,
+        onEnd: () => this.resizing = false,
+      }).forceGridAnimation;
+      this.resize$.subscribe(val => {
+        this.cols = val;
+        this.cdr.detectChanges();
+        console.log("animate");
+        animate();
+      });
     })
   }
 }
@@ -27,18 +64,33 @@ export class AppComponent implements AfterViewInit {
 //he needs resize, but we may not need it if we have the width of the note the same thus saving a lot!
 // think about how to make animation and also check because i think the prev version was kinda smoother?
 function resizeAllGridItems(){
-  console.log("?");
-  let allItems = document.getElementsByClassName("bl") as unknown as HTMLElement[];
+  console.log("ok");
+  const allItems = document.getElementsByClassName("bl") as unknown as HTMLElement[];
+  const grid = document.getElementsByClassName("main")[0] as HTMLElement;
+
+  const rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
   for(let x=0;x<allItems.length;x++){
-    resizeGridItem(allItems[x]);
+    resizeGridItem(grid, rowHeight, allItems[x]);
   }
 }
 
-function resizeGridItem(item: HTMLElement){
-  console.log(item.querySelector('.content')!.getBoundingClientRect().height);
-  let grid = document.getElementsByClassName("main")[0];
-  let rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
-  let rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-row-gap'));
-  let rowSpan = Math.ceil((item.querySelector('.content')!.getBoundingClientRect().height+rowGap)/(rowHeight+rowGap));
-  item.style.gridRowEnd = "span "+rowSpan;
+function resizeGridItem(grid:HTMLElement, rowHeight: number, item: HTMLElement){
+  const rowSpan = Math.ceil((item.firstElementChild!.clientHeight + 10) / rowHeight);
+  item.style.gridRowEnd = `span ${rowSpan}`;
+}
+
+function throttle(callback: Function, limit: number) {
+  var wait = false; // Initially, we're not waiting
+  return function() {
+    // We return a throttled function
+    if (!wait) {
+      // If we're not waiting
+      callback.call(null); // Execute users function
+      wait = true; // Prevent future invocations
+      setTimeout(function() {
+        // After a period of time
+        wait = false; // And allow future invocations
+      }, limit);
+    }
+  };
 }
