@@ -1,17 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnInit} from '@angular/core';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  fromEvent,
-  map,
-  Observable,
-  startWith,
-  tap,
-  throttleTime
-} from "rxjs";
-import {wrapGrid} from "animate-css-grid";
-import {rxsize} from "./shared/utils/rxsizable.utils";
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'app-root',

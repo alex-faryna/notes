@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnInit, Query, QueryList,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import {debounceTime, distinctUntilChanged, filter, map, tap} from "rxjs";
 import {rxsize} from "../../../shared/utils/rxsizable.utils";
 import {wrapGrid} from "animate-css-grid";
@@ -13,6 +21,7 @@ import {Note} from "../../../shared/models/note.model";
 })
 export class NotesListComponent implements OnInit {
   @ViewChild("notesContainer", {static: true}) public notesContainer!: ElementRef;
+  private readonly columnWidth = 250;
   public cols = 1;
   public notes$ = this.notesService.getNotesList();
 
@@ -20,8 +29,7 @@ export class NotesListComponent implements OnInit {
   private colNum$ = rxsize(this.ref.nativeElement).pipe(
     debounceTime(200),
     filter(arr => !this.resizing && !!arr?.length),
-    tap(() => this.resizeAllGridItems()),
-    map(([rect]) => Math.floor(rect.contentRect.width / 250) || 1),
+    map(([rect]) => this.getColumns(rect.contentRect.width)),
     distinctUntilChanged(),
   );
 
@@ -31,7 +39,9 @@ export class NotesListComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    const animate = wrapGrid(this.notesContainer.nativeElement, {
+    const notesContainer = this.notesContainer.nativeElement;
+    this.cols = this.getColumns(notesContainer.clientWidth);
+    const animate = wrapGrid(notesContainer, {
       duration: 250,
       stagger: 5,
       onStart: () => this.resizing = true,
@@ -50,10 +60,17 @@ export class NotesListComponent implements OnInit {
   }
 
   private resizeAllGridItems(): void {
-    console.log("resize all");
+    // console.log("resize all");
+    // console.log(this.notes);
+    // this.notes.forEach(note => console.log(note.nativeElement));
+    // this.notes.forEach(note => note.style.gridRowEnd = `span ${note.firstElementChild!.clientHeight + 10}`);
     const allItems: unknown = document.getElementsByTagName("app-note-list-item");
     Array.from(allItems as HTMLElement[]).forEach(item => {
       item.style.gridRowEnd = `span ${item.firstElementChild!.clientHeight + 10}`;
     })
+  }
+
+  private getColumns(parent: number): number {
+    return Math.floor(parent / this.columnWidth) || 1;
   }
 }
