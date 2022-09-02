@@ -17,5 +17,4 @@ export class NoteListItemComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
 }

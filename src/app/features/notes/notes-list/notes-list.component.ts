@@ -77,13 +77,13 @@ export class NotesListComponent implements OnInit, AfterViewInit {
   public ngOnInit(): void {
     rxsize(this.ref.nativeElement)
       .pipe(skip(1), debounceTime(75))
-      .subscribe(() => this.updateView());
+      //.subscribe(() => this.updateView());
   }
 
   public ngAfterViewInit(): void {
     this.notesCards.changes
       .pipe(startWith(this.notesCards))
-      .subscribe(() => this.updateView());
+      //.subscribe(() => this.updateView());
   }
 
   public trackByMethod(index: number, el: Note): number {

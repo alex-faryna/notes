@@ -1,1 +1,52 @@
-<app-notes-list></app-notes-list>
+<!-- app-notes-list></app-notes-list -->
+<!-- div class="main">
+  <div class="aaa">
+    <p *notesFor="let i of [1,2,3];idx: 0; let d = index">{{i}}</p>
+  </div>
+  <div class="bbb">
+    <p *notesFor="let i of [1,2,3];idx: 1; let d = index">{{i}}</p>
+  </div>
+  <div class="ccc">
+    <p *notesFor="let i of [1,2,3];idx: 2; let d = index">{{i}}</p>
+  </div>
+</div -->
+<span>test</span>
+<div notesContainer>
+  <span>okay</span>
+  <div *notesColumn="3">Hello</div>
+</div>
+
+<!-- div *notesColumn="3">Hello</div -->
+
+<!-- usage -->
+<!--
+<div class="main">
+  <p *notesFor="let i of [1,2,3];idx: 2; let d = index">
+    <div *notesCol="3" class="etc"></div>
+  </p>
+</div>
+-->
+
+<!-- ??? i guess not because if we want something inside we'll need to remove the template from inside or mb not?? -->
+
+<!-- +usage -->
+<!--
+<div class="main" *notesContainer> // flex to the right etc
+  <p *notesFor="let i of [1,2,3];idx: 2; let d = index"></p>
+  <div *notesColumn="3"></div> // flex column etc
+</div>
+-->
+
+<!-- like 1st variant more -->
+
+<!-- usage -->
+<!--
+<div class="main">
+  <ng-container notesContainer>
+    <p *notesFor="let i of [1,2,3];idx: 2; let d = index"></p>
+    <div *notesCol></div>
+    <div *notesCol></div>
+    <div *notesCol></div>
+  </ng-container>
+</div>
+-->
