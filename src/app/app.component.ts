@@ -25,6 +25,7 @@ export class AppComponent implements AfterViewInit {
 // can create directive which will set the necessary amount of rowspan
 // or optimize this a bit (rowgap set to 0 rowheight is known etc)
 //he needs resize, but we may not need it if we have the width of the note the same thus saving a lot!
+// think about how to make animation and also check because i think the prev version was kinda smoother?
 function resizeAllGridItems(){
   console.log("?");
   let allItems = document.getElementsByClassName("bl") as unknown as HTMLElement[];
