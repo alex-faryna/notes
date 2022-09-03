@@ -4,11 +4,9 @@ import {AfterViewInit, Directive, ElementRef, Input} from '@angular/core';
   selector: '[note]'
 })
 export class NoteDirective implements AfterViewInit {
-
   @Input() gap = 10;
 
-  constructor(private ref: ElementRef) {
-  }
+  constructor(private ref: ElementRef) {}
 
   public ngAfterViewInit(): void {
     console.log("note");

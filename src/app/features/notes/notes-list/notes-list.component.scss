@@ -1,12 +1,13 @@
 :host {
   height: 100%;
   width: 100%;
-  display: block;
-  // insert main into flex container and center it
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-  .main {
+  .grid {
+    transition: all 0.125s linear;
     height: 100%;
-    width: 100%;
     display: grid;
     grid-gap: 0;
     grid-auto-rows: 1px;
