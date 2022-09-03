@@ -12,22 +12,22 @@ import {Note} from "../../../shared/models/note.model";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotesListComponent implements OnInit {
-  @ViewChild("grid", {static: true}) public grid!: ElementRef;
-  private readonly columnWidth = 250;
-  public cols = 1;
+  @ViewChild("grid", {static: true}) public gridRef!: ElementRef;
   public notes$ = this.notesService.getNotesList();
+  public cols = 1;
 
+  private readonly columnWidth = 250;
   private gridOffset = 0;
   private gridAnimation = false;
   private grid$ = rxsize(this.ref.nativeElement).pipe(
     tap(() => {
       if (!this.gridOffset) {
-        this.gridOffset = this.grid.nativeElement.offsetLeft;
-        this.grid.nativeElement.style.left = this.gridOffset + "px";
+        this.gridOffset = this.grid.offsetLeft;
+        this.grid.style.left = `${this.gridOffset}px`;
       }
     }),
-    debounceTime(200),
-    filter(arr => !this.gridAnimation && !!arr?.length),
+    debounceTime(250),
+    filter(arr => !this.gridAnimation && !!arr?.length), // double check these things if they are really needed
     map(([rect]) => rect.contentRect.width),
     distinctUntilChanged(),
   );
@@ -38,18 +38,15 @@ export class NotesListComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.cols = this.getColumns(this.ref.nativeElement.clientWidth);
-    const animate = wrapGrid(this.grid.nativeElement, {
+    this.updateGrid();
+    const animate = wrapGrid(this.grid, {
       duration: 250,
       stagger: 5,
       onStart: () => this.gridAnimation = true,
       onEnd: () => this.gridAnimation = false,
     }).forceGridAnimation;
-    this.grid$.subscribe(width => {
-      this.cols = this.getColumns(width);
-      this.gridOffset = 0;
-      this.cdr.detectChanges();
-      this.grid.nativeElement.style.left = Math.floor((this.ref.nativeElement.clientWidth - this.grid.nativeElement.clientWidth) / 2) + "px";
+    this.grid$.subscribe(() => {
+      this.updateGrid();
       animate();
     });
   }
@@ -58,7 +55,18 @@ export class NotesListComponent implements OnInit {
     return el.id;
   }
 
-  private getColumns(parent: number): number {
-    return Math.floor(parent / this.columnWidth) || 1;
+  private updateGrid(): void {
+    this.cols = Math.floor(this.width / this.columnWidth) || 1
+    this.gridOffset = 0;
+    this.cdr.detectChanges();
+    this.gridRef.nativeElement.style.left = `${Math.floor((this.width - this.grid.clientWidth) / 2)}px`;
+  }
+
+  private get width() {
+    return this.ref.nativeElement.clientWidth;
+  }
+
+  private get grid() {
+    return this.gridRef.nativeElement;
   }
 }
