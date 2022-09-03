@@ -1,13 +1,12 @@
 :host {
   height: 100%;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   position: relative;
+  display: block;
   box-sizing: border-box;
 
   .grid {
+    position: absolute;
     box-sizing: border-box;
     transition: left 0.125s linear;
     height: 100%;
