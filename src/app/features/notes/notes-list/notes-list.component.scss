@@ -1,27 +1,17 @@
 :host {
-  /*display: grid;
-  grid-template-columns: repeat(3, minmax(200px, 300px));
-  justify-content: center;
-  gap: 20px;
+  height: 100%;
+  width: 100%;
+  display: block;
+  position: relative;
 
-  @media screen and (max-width: 1150px) {
-    grid-template-columns: repeat(2, minmax(200px, 300px));
-  }
-
-  @media screen and (max-width: 800px) {
-    grid-template-columns: minmax(200px, 300px);
-  }*/
-  // position: relative;
-
-
-  display: grid;
-  grid-template-columns: repeat(3, minmax(200px, 300px)); // with media queries i guess in ts when resizing window
-  justify-content: center;
-  gap: 20px;
-
-  .col {
-    display: flex;
-    gap: 20px;
-    flex-direction: column;
+  .grid {
+    position: absolute;
+    transition: left 0.15s linear;
+    height: 100%;
+    display: grid;
+    grid-gap: 0;
+    grid-auto-rows: 1px;
+    padding: 10px 5px;
+    justify-content: start;
   }
 }

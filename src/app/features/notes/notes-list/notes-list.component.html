@@ -1,21 +1,14 @@
-<!-- ng-container *ngIf="notes$ | async as notes">
-  <app-note-list-item *ngFor="let note of notes"
-                      [title]="note.title"
-                      [content]="note.content"
-                      [test]="note?.test"
-  ></app-note-list-item>
-</ng-container-->
-
-<ng-container *ngIf="notes$ | async as notes">
-  <div *ngFor="let col of cols; let i = index">
-    <span class="col">
-      <ng-container *ngFor="let note of notes; let ni = index">
-        <app-note-list-item *ngIf="ni % colsCount === i"
-                            [title]="note.title"
-                            [content]="note.content"
-                            [test]="note?.test"
-        ></app-note-list-item>
-      </ng-container>
-    </span>
-  </div>
-</ng-container>
+<div #grid class="grid"
+     [style.grid-template-columns]="'repeat(' + cols + ', auto)'">
+  <ng-container *ngIf="notes$ | async as notes">
+    <div *ngFor="let note of notes; trackBy: trackByMethod; let i = index"
+         style="display: block">
+      <app-note-list-item note
+                          [title]="note.title"
+                          [content]="note.content"
+                          [test]="note?.test"
+                          [test2]="note?.['test2']"
+      ></app-note-list-item>
+    </div>
+  </ng-container>
+</div>
