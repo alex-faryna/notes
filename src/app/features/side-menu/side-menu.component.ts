@@ -1,28 +1,50 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component} from '@angular/core';
-import {THEME_COLORS} from "../../shared/models/color.model";
-import {animate, keyframes, state, style, transition, trigger} from "@angular/animations";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Output,
+  QueryList,
+  ViewChildren
+} from '@angular/core';
+import {Color, THEME_COLORS} from "../../shared/models/color.model";
 
-export const showBubble = trigger('showBubble', [
-  transition(':enter', [
-    style({top: 0}),
-    animate("500ms ease-out")
-// keyframes([
-//       style({top: "90px"}),
-//     ])),
-  ]) //{params: {idx: "0"}}
-]);
+const BUBBLE_FRAME_TIME = 85;
 
 @Component({
   selector: 'app-side-menu',
   templateUrl: './side-menu.component.html',
   styleUrls: ['./side-menu.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [showBubble],
 })
 export class SideMenuComponent {
-  public readonly colors = THEME_COLORS;
-  public showColors = false;
+  @ViewChildren("colorBubble") private bubbles!: QueryList<ElementRef>;
+  public readonly colors = THEME_COLORS.reverse();
+  public readonly animation = [
+    {top: "0", easing: "ease-out"},
+    ...THEME_COLORS.map((_, i) => ({
+      top: `${20 + (i + 1) * 36}px`,
+    })),
+  ];
 
-  constructor(private cdr: ChangeDetectorRef) {
+  public showColors = false;
+  @Output() private bubbleClick = new EventEmitter<{color: Color, event?: MouseEvent}>();
+
+
+  public animateBubbles(show = true): void {
+    const easing = show ? "ease-out" : 'ease-in';
+    const animation = this.animation.map(anim => ({...anim, easing}));
+    [...this.bubbles].reverse().forEach((bubble, i) => {
+      bubble.nativeElement.animate(animation.slice(0, i + 2), {
+        duration: BUBBLE_FRAME_TIME * (i + 1),
+        delay: show ? 0 : BUBBLE_FRAME_TIME * (this.bubbles.length - i),
+        fill: "both",
+        direction: show ? "normal" : "reverse",
+      });
+    });
+  }
+
+  public bubbleClicked(color: Color, event: MouseEvent): void {
+    this.bubbleClick.emit({color, event});
   }
 }
