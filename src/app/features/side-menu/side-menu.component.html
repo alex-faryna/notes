@@ -1,0 +1,20 @@
+<div class="flex-column relative">
+  <button mat-fab (click)="showColors = !showColors">
+    <mat-icon>add</mat-icon>
+  </button>
+  <ng-container *ngIf="showColors">
+    <div *ngFor="let color of colors; let i = index"
+         [@showBubble]
+         [style.top]="'90px'"
+         class="color-bubble absolute"
+         [style.background]="color.color"
+    ></div>
+  </ng-container>
+</div>
+
+<!--
+
+[style.transition]="'top ' + 5 * (i + 1) + 's ease-out'"
+       [style.top]="36 + (showColors ? 40 + i * 30 : 0) + 'px'"
+
+-->
