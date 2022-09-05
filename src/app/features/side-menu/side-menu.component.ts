@@ -38,7 +38,7 @@ export class SideMenuComponent {
       bubble.nativeElement.animate(animation.slice(0, i + 2), {
         duration: BUBBLE_FRAME_TIME * (i + 1),
         delay: show ? 0 : BUBBLE_FRAME_TIME * (this.bubbles.length - i),
-        fill: "both",
+        fill: "forwards",
         direction: show ? "normal" : "reverse",
       });
     });
