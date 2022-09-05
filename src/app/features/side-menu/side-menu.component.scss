@@ -5,10 +5,5 @@
   align-items: center;
   padding: 20px 15px;
   gap: 15px;
-}
-
-.color-bubble {
-  border: 1.5px solid rgba(0,0,0,0.25);
-  width: 20px;
-  aspect-ratio: 1;
+  user-select: none;
 }

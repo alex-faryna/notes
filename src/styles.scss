@@ -27,8 +27,12 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   border-radius: 50%;
 }
 
-.no-events {
+.no-pointer {
   pointer-events: none;
+}
+
+.no-select {
+  user-select: none;
 }
 
 .pointer {
@@ -37,6 +41,14 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .absolute {
   position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.block {
+  display: block;
 }
 
 .flex {
@@ -51,5 +63,12 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .flex-align-start {
   align-items: flex-start;
+}
+
+.color-bubble {
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.25);
+  width: 20px;
+  aspect-ratio: 1;
 }
 

@@ -3,7 +3,7 @@
     <mat-icon>add</mat-icon>
   </button>
   <div *ngFor="let color of colors" #colorBubble
-       class="color-bubble absolute circle pointer"
+       class="color-bubble absolute pointer"
        [style.background]="color.color"
        (click)="bubbleClicked(color, $event)"
   ></div>

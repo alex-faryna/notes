@@ -1,2 +1,2 @@
-<app-side-menu></app-side-menu>
-<app-notes-list></app-notes-list>
+<app-side-menu (bubbleClick)="selectedColor = $event"></app-side-menu>
+<app-notes-list [newNote]="selectedColor"></app-notes-list>

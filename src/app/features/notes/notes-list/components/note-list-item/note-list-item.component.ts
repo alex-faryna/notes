@@ -12,8 +12,10 @@ export class NoteListItemComponent implements OnInit {
   @Input() public content = "";
   @Input() public test? = "";
   @Input() public test2? = "";
+  @Input() public color = "#424242";
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
   }

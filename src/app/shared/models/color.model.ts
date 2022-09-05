@@ -3,6 +3,8 @@ export interface Color {
   color: string;
 }
 
+export type ColorBubble = {color: Color, event: MouseEvent}
+
 export const COLORS = [
   "#ffffff",
   "#ff5634",

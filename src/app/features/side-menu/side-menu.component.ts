@@ -7,7 +7,7 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
-import {Color, THEME_COLORS} from "../../shared/models/color.model";
+import {Color, ColorBubble, THEME_COLORS} from "../../shared/models/color.model";
 
 const BUBBLE_FRAME_TIME = 85;
 
@@ -28,8 +28,7 @@ export class SideMenuComponent {
   ];
 
   public showColors = false;
-  @Output() private bubbleClick = new EventEmitter<{color: Color, event?: MouseEvent}>();
-
+  @Output() private bubbleClick = new EventEmitter<ColorBubble>();
 
   public animateBubbles(show = true): void {
     const easing = show ? "ease-out" : 'ease-in';
