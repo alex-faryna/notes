@@ -20,7 +20,6 @@ export const THEME_COLORS = COLORS.map((color, id) => ({id, color}));
 export const getContrastColor = (hex: string) => {
   hex = hex.charAt(0) === "#" ? hex.substring(1,7) : hex;
   const colorBrightness = hexToCol(hex, 0, 299) + hexToCol(hex, 2, 587) + hexToCol(hex, 4, 114);
-  console.log(colorBrightness);
   return colorBrightness > 130000 ? "#000000" : "#ffffff"
 }
 
