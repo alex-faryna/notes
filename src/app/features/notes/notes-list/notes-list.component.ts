@@ -37,6 +37,9 @@ export class NotesListComponent implements OnInit {
     // animate when we change the color too
     console.log(value);
     if (value) {
+      const prevColumns = this.cols;
+      // get prev columns
+      // becuase animation occurs only after we add new elements or number of cols change
       this._newNote = (value as ColorBubble).color;
       this.updateGrid();
       this.cdr.detectChanges();
@@ -48,7 +51,7 @@ export class NotesListComponent implements OnInit {
       // or maybe something like jumping??
       const {left, top} = (value.event.target as HTMLElement).getBoundingClientRect();
       const {y, width, height} = this.newNoteRef.nativeElement.getBoundingClientRect();
-      this.heroRef.nativeElement.animate([
+      const animation = this.heroRef.nativeElement.animate([
         {top, left},
         // make maybe weird shape
         //{ top: (top + y) / 2, left: (left + x) / 2, width: width / 2, height: height / 2,
@@ -62,18 +65,23 @@ export class NotesListComponent implements OnInit {
         fill: "both",
       });
       // do we really need this?
-      /*animation.finished.then((res: any) => {
+      animation.finished.then((res: any) => {
 
-
+        // hack but we only need it if it is already in edit mode
+        if (prevColumns === this.cols) {
+          this._newNoteState = NoteCreationState.INPUT; // remove form here as it is not the place
+          // after animation too i guess
+          this.cdr.detectChanges();
+        }
         // works i guess :))
-        setTimeout(() => {
+        //setTimeout(() => {
           // this.notesService.upd();
           //this._newNote = null;
           //this.cdr.detectChanges();
           // think about the logic when we add it and etcetera
-          console.log(res);
-        }, 1000);
-      });*/
+         // console.log(res);
+        //}, 1000);
+      });
     }
   }
 
