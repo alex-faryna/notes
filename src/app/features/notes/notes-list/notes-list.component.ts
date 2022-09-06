@@ -14,6 +14,12 @@ import {NotesService} from "../../../shared/services/notes.service";
 import {Note} from "../../../shared/models/note.model";
 import {Color, ColorBubble} from "../../../shared/models/color.model";
 
+enum NoteCreationState {
+  NONE,
+  ANIMATION,
+  INPUT
+}
+
 @Component({
   selector: 'app-notes-list',
   templateUrl: './notes-list.component.html',
@@ -21,6 +27,7 @@ import {Color, ColorBubble} from "../../../shared/models/color.model";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotesListComponent implements OnInit {
+  public readonly noteCreationState = NoteCreationState;
   @ViewChild("grid", {static: true}) public gridRef!: ElementRef;
   @ViewChild("newNote") public newNoteRef!: ElementRef;
   @ViewChild("hero") public heroRef!: ElementRef;
@@ -30,46 +37,55 @@ export class NotesListComponent implements OnInit {
     // animate when we change the color too
     if (value) {
       this._newNote = (value as ColorBubble).color;
+      this.updateGrid();
       this.cdr.detectChanges();
+      const x = this.x + 10 + Math.floor((this.width - this.grid.clientWidth) / 2);
+      this._newNoteState = NoteCreationState.ANIMATION;
+      this.cdr.detectChanges();
+
       // maybe animation here flying
       // or maybe something like jumping??
       const {left, top} = (value.event.target as HTMLElement).getBoundingClientRect();
-      const {x, y, width, height} = this.newNoteRef.nativeElement.getBoundingClientRect();
-      const heroEl = this.heroRef.nativeElement;
-      const animation = heroEl.animate([
+      const {y, width, height} = this.newNoteRef.nativeElement.getBoundingClientRect();
+      this.heroRef.nativeElement.animate([
         {top, left},
         // make maybe weird shape
-        { top: (top + y) / 2, left: (left + x) / 2, width: width / 2, height: height / 2,
-          borderRadius: '5px', padding: '10px'},
+        //{ top: (top + y) / 2, left: (left + x) / 2, width: width / 2, height: height / 2,
+         // borderRadius: '5px', padding: '10px'},
         {
-          top: y, left: x + 5, width: width - 10, height: height - 10,
+          top: y, left: x, width: width - 10, height: height - 10,
           borderRadius: '5px', padding: '10px',
         },
       ], {
         duration: 250,
         fill: "both",
       });
-      animation.finished.then((res: any) => {
+      // do we really need this?
+      /*animation.finished.then((res: any) => {
+
+
         // works i guess :))
         setTimeout(() => {
           // this.notesService.upd();
-          this._newNote = null;
-          this.cdr.detectChanges();
+          //this._newNote = null;
+          //this.cdr.detectChanges();
           // think about the logic when we add it and etcetera
           console.log(res);
         }, 1000);
-      });
+      });*/
     }
   }
 
+  // refactor
+  public _newNoteState = NoteCreationState.NONE;
   public _newNote: Color | null = null;
 
   public notes$ = this.notesService.getNotesList();
-  public cols = 1;
+  public cols = 1; // obs$
 
   private readonly columnWidth = 250;
   private gridOffset = 0;
-  private gridAnimation = false;
+  private gridAnimation = false; // as behaviorsubject
   private grid$ = rxsize(this.ref.nativeElement).pipe(
     tap(() => {
       if (!this.gridOffset) {
@@ -99,6 +115,8 @@ export class NotesListComponent implements OnInit {
         console.log("end");
         if (this._newNote) {
           this.updateGrid();
+          this._newNoteState = NoteCreationState.INPUT;
+          this.cdr.detectChanges();
         }
       },
     }).forceGridAnimation;
@@ -122,6 +140,10 @@ export class NotesListComponent implements OnInit {
 
   private get width() {
     return this.ref.nativeElement.clientWidth;
+  }
+
+  private get x() {
+    return this.ref.nativeElement.offsetLeft;
   }
 
   private get grid() {

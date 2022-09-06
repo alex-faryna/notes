@@ -1,7 +1,8 @@
 <div #grid class="grid"
      [style.grid-template-columns]="'repeat(' + cols + ', auto)'">
   <ng-container *ngIf="notes$ | async as notes">
-    <div #newNote *ngIf="_newNote">
+    <div #newNote *ngIf="_newNote"
+         [style.visibility]="_newNoteState === noteCreationState.INPUT ? 'visible' : 'hidden'">
       <app-note-list-item note
                           title="New title"
                           content="New content"
@@ -19,8 +20,8 @@
     </div>
   </ng-container>
 </div>
-<div *ngIf="_newNote" #hero
+<div *ngIf="_newNoteState === noteCreationState.ANIMATION" #hero
      class="fixed color-bubble hero-bubble z1 no-select no-pointer"
      [style]="{left: 0, top: 0}"
-     [style.background]="_newNote.color"
+     [style.background]="_newNote?.color"
 ></div>
