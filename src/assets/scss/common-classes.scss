@@ -1,0 +1,69 @@
+.relative {
+  position: relative;
+}
+
+.z1 {
+  z-index: 1;
+}
+
+.z0 {
+  z-index: 0;
+}
+
+.z-1 {
+  z-index: -1;
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.no-pointer {
+  pointer-events: none;
+}
+
+.no-select {
+  user-select: none;
+}
+
+.visible {
+  visibility: visible;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.removed {
+  display: none;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.block {
+  display: block;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flex-align-start {
+  align-items: flex-start;
+}

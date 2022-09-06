@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
 import {BehaviorSubject, delay, Observable, of, tap} from "rxjs";
-import {Note} from "../models/note.model";
+import {Note, NoteStates} from "../models/note.model";
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotesService {
+  // use ase storage for now, then move to store
 
+  /*
   constructor() {
-    /*setTimeout(() => {
+    setTimeout(() => {
       this.obs.next([
         {
           id: 10,
@@ -64,35 +66,18 @@ export class NotesService {
           content: "Content 2",
         },
       ])
-    }, 2500);*/
+    }, 2500);
+  }*/
+
+  // sets grid to keep track of
+
+  // myabe really move the resize to service
+
+  public test(val: unknown): void {
+    console.log(val);
   }
 
-  public upd(): void {
-    this.obs.next([
-      {
-        id: 10,
-        title: "Note 4",
-        content: "Content 2",
-      },
-      {
-        id: 0,
-        title: "Note 1",
-        content: "Content 1",
-      },
-      {
-        id: 1,
-        title: "Note 2",
-        content: "Content 2",
-        test: "2",
-        test2: "2",
-      },
-      {
-        id: 2,
-        title: "Note 3",
-        content: "Content 1",
-      },
-    ])
-  }
+  // getter below, storage above
 
   public getNotesList(): Observable<Note[]> {
     return this.obs.asObservable();
@@ -234,28 +219,5 @@ export class NotesService {
         }
       ])
     }, 5500);
-    setTimeout(() => {
-      this.obs.next([
-        {
-          id: 0,
-          title: "Note 1",
-          content: "Content 1",
-        },
-        {
-          id: 1,
-          title: "Note 2",
-          content: "Content 2",
-          test: "2",
-          test2: "2",
-        },
-        {
-          id: 4,
-          title: "Note 5",
-          content: "Content 1",
-          test: "2",
-          test2: "2",
-        },
-      ])
-    }, 8800);
   }
 }
