@@ -72,6 +72,10 @@ export class NotesListComponent implements OnInit {
           this._newNoteState = NoteCreationState.INPUT; // remove form here as it is not the place
           // after animation too i guess
           this.cdr.detectChanges();
+
+          // feat(new note while editing this note bug)
+          // actually when editing we need to cover it only if we don't have written anything there
+          // if we have already type something then it must add as a new one
         }
         // works i guess :))
         //setTimeout(() => {
