@@ -35,6 +35,7 @@ export class NotesListComponent implements OnInit {
   @Input()
   public set newNote(value: ColorBubble | null) {
     // animate when we change the color too
+    console.log(value);
     if (value) {
       this._newNote = (value as ColorBubble).color;
       this.updateGrid();
@@ -113,9 +114,13 @@ export class NotesListComponent implements OnInit {
       onEnd: () => {
         this.gridAnimation = false;
         console.log("end");
+        console.log("---");
+        console.log(this._newNote);
+        console.log("---");
         if (this._newNote) {
           this.updateGrid();
-          this._newNoteState = NoteCreationState.INPUT;
+          this._newNoteState = NoteCreationState.INPUT; // remove form here as it is not the place
+          // after animation too i guess
           this.cdr.detectChanges();
         }
       },
