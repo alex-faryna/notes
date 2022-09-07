@@ -14,20 +14,54 @@ import {rxsize} from "../../../shared/utils/rxsizable.utils";
 import {Note, NoteStates} from "../../../shared/models/note.model";
 import {GridParams, NotesService} from "../../../shared/services/notes.service";
 import {wrapGrid} from "animate-css-grid";
+import {animate, animateChild, query, stagger, state, style, transition, trigger} from "@angular/animations";
+/*
+
+query(':enter', stagger(100,
+          trigger('animate', [
+            transition(':enter', [
+              animate('250ms', style({ transform: 'translateY(50px)' }))
+            ]),
+            transition(':leave', [
+              style({ }),
+              animate('250ms', style({ transform: 'translateY(10px)' }))
+            ])
+])))
+
+ */
+
+
+/*
+[@notesList]
+ */
 
 // TODO: angular animation for ngFor elements
+// investigate why grid animation now slows in the end
 @Component({
   selector: 'app-notes-list',
   templateUrl: './notes-list.component.html',
   styleUrls: ['./notes-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('notesList', [
+      transition('* => *', [
+        query(':enter .stale-note',
+          [
+            style({ opacity: 0, paddingTop: '20px' }),
+            stagger('100ms', animate('50ms linear'))
+          ],
+          { optional: true }
+        ),
+      ])
+    ])
+  ]
 })
 export class NotesListComponent implements OnInit, AfterViewInit {
   public readonly noteStates = NoteStates;
   @ViewChildren("grid") public gridRef!: QueryList<ElementRef>;
 
   @Input() set notes(value: Note[]) {
-    this._notes = value;
+    this._notes = value ?? [];
     // this.updateGrid(); // hmm
     // maybe try to optimize stuff in that function of grid items animation
     // but still good that it's decomposed from animation now

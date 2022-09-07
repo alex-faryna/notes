@@ -52,6 +52,26 @@ export class NotesService {
   // getter below, storage above
 
   public getNotesList(): Observable<Note[]> {
+    setTimeout(() => {
+      this.obs.next([{
+        id: 10,
+        title: "Note 10",
+        content: "Content 1101",
+      }, ...this.obs.value, {
+        id: 100,
+        title: "Note 1100",
+        content: "Content 1101",
+      }]);
+    }, 6000);
+
+    setTimeout(() => {
+      this.obs.next([
+        ...this.obs.value, {
+        id: 1000,
+        title: "Note 1100",
+        content: "Content 1101",
+      }]);
+    }, 10000);
     return this.obs.asObservable();
   }
 

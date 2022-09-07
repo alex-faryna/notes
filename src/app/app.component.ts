@@ -31,7 +31,7 @@ export class AppComponent {
       y: target.top,
     }
     this.notes$.next([{
-      id: 10,
+      id: 10, // + this.notes$.value.length,
       title: "New title",
       content: "New content",
       state: NoteStates.CREATE,
