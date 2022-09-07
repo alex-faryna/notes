@@ -212,8 +212,6 @@ export class NotesListComponent implements OnInit, AfterViewInit {
       this.animate = wrapGrid(first.nativeElement, {
         duration: 250,
         stagger: 5,
-
-
       }).forceGridAnimation;
     });
   }
@@ -228,16 +226,4 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
     this.gridRef.nativeElement.style.left = `${Math.floor((this.width - this.grid.clientWidth) / 2)}px`;
   }*/
-
-  private get width() {
-    return this.ref.nativeElement.clientWidth;
-  }
-
-  private get x() {
-    return this.ref.nativeElement.offsetLeft;
-  }
-
-  private get grid() {
-    return this.gridRef; //.nativeElement;
-  }
 }

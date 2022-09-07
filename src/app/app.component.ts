@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {ColorBubble} from "./shared/models/color.model";
 import {NotesService} from "./shared/services/notes.service";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, map, tap} from "rxjs";
 import {Note, NoteStates} from "./shared/models/note.model";
 
 @Component({
@@ -11,6 +11,9 @@ import {Note, NoteStates} from "./shared/models/note.model";
 })
 export class AppComponent {
   public selectedBubble: ColorBubble | null = null;
+  public from!: {x: number, y: number};
+  public to!: {x: number, y: number};
+
   public notes$ = new BehaviorSubject<Note[]>([]);
 
   constructor(private notesService: NotesService) {
@@ -19,13 +22,26 @@ export class AppComponent {
   }
 
   public addNote(val: ColorBubble): void {
+    // change to store mechanism so we don't explicitly wait
     this.selectedBubble = val;
+
+    const target = (val.event.target as HTMLElement).getBoundingClientRect();
+    this.from = {
+      x: target.left,
+      y: target.top,
+    }
     this.notes$.next([{
       id: 10,
       title: "New title",
       content: "New content",
       state: NoteStates.CREATE,
     }, ...this.notes$.value]);
+    this.notesService.valueLength(this.notes$.value.length); // remove when store
+
+    this.to = {
+      x: this.notesService.gridPos(),
+      y: 10,
+    };
 
     setTimeout(() => {
       this.notes$.next([{

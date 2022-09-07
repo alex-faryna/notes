@@ -3,5 +3,7 @@
 <app-notes-list [notes]="(notes$ | async) || []"
 ></app-notes-list>
 <app-hero-bubble *ngIf="selectedBubble"
-                 [from]="selectedBubble"
+                 [color]="selectedBubble.color"
+                 [from]="from"
+                 [to]="to"
 ></app-hero-bubble>

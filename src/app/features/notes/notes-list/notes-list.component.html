@@ -1,26 +1,24 @@
 <div *ngIf="data$ | async as data" #grid class="grid"
      [style.left]="data.pos + 'px'"
      [style.grid-template-columns]="'repeat(' + data.cols + ', auto)'">
-  <ng-container *ngIf="_notes"> <!-- remove -->
-    <!-- div #newNote *ngIf="_newNote"
-         [style.visibility]="_newNoteState === noteCreationState.INPUT ? 'visible' : 'hidden'">
-      <app-note-list-item note
-                          title="New title"
-                          content="New content"
-                          [color]="_newNote.color"
-      ></app-note-list-item>
-    </div-->
-    <div *ngFor="let note of _notes; trackBy: trackByMethod; let i = index"
-         class="block no-select">
-      <app-note-list-item note [class.hidden]="note?.state === noteStates.CREATE"
-                          [color]="note?.color"
-                          [title]="note.title"
-                          [content]="note.content"
-                          [test]="note?.test"
-                          [test2]="note?.['test2']"
-      ></app-note-list-item>
-    </div>
-  </ng-container>
+  <!-- div #newNote *ngIf="_newNote"
+       [style.visibility]="_newNoteState === noteCreationState.INPUT ? 'visible' : 'hidden'">
+    <app-note-list-item note
+                        title="New title"
+                        content="New content"
+                        [color]="_newNote.color"
+    ></app-note-list-item>
+  </div-->
+  <div *ngFor="let note of _notes; trackBy: trackByMethod; let i = index"
+       class="block no-select">
+    <app-note-list-item note [class.hidden]="note?.state === noteStates.CREATE"
+                        [color]="note?.color"
+                        [title]="note.title"
+                        [content]="note.content"
+                        [test]="note?.test"
+                        [test2]="note?.['test2']"
+    ></app-note-list-item>
+  </div>
 </div>
 <!-- div *ngIf="_newNoteState === noteCreationState.ANIMATION" #hero
      class="fixed color-bubble hero-bubble z1 no-select no-pointer"

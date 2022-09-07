@@ -17,95 +17,35 @@ export interface GridParams {
 export class NotesService {
   // use ase storage for now, then move to store
 
-  /*
-  constructor() {
-    setTimeout(() => {
-      this.obs.next([
-        {
-          id: 10,
-          title: "New Note 10",
-          content: "Content 10 new",
-        },
-        {
-          id: 0,
-          title: "Note 1",
-          content: "Content 1",
-        },
-        {
-          id: 1,
-          title: "Note 2",
-          content: "Content 2",
-          test: "2",
-          test2: "2",
-        },
-        {
-          id: 2,
-          title: "Note 3",
-          content: "Content 1",
-        },
-        {
-          id: 3,
-          title: "Note 4",
-          content: "Content 2",
-          test: "2",
-          test2: "2",
-        },
-        {
-          id: 4,
-          title: "Note 5",
-          content: "Content 1",
-          test: "2",
-          test2: "2",
-        },
-        {
-          id: 5,
-          title: "Note 6",
-          content: "Content 2",
-          test: "2",
-        },
-        {
-          id: 6,
-          title: "Note 7",
-          content: "Content 1",
-          test: "2",
-        },
-        {
-          id: 7,
-          title: "Note 8",
-          content: "Content 2",
-        },
-      ])
-    }, 2500);
-  }*/
-
   // sets grid to keep track of
   // myabe really move the resize to service
   // width of whole notes list component
-
-  public gridResized(val: number): void {
-    this.gridWidth.next(val);
-  }
 
   // the store would take this automatically
   public valueLength(val: number): void {
     this.dataLength.next(val);
   }
 
-  // that's all we need to get the number of columns
+  public gridResized(val: number): void {
+    this.gridWidth.next(val);
+  }
+
+  public gridPos(): number {
+    return this.savedPos;
+  }
+
   private gridWidth = new BehaviorSubject<number>(0);
   private dataLength = new BehaviorSubject<number>(0);
+  private savedPos = 0;
 
   public gridData$ = combineLatest([
     this.gridWidth.pipe(distinctUntilChanged()),
     this.dataLength.pipe(distinctUntilChanged()),
   ]).pipe(map(([width, length]) => {
     const cols = Math.min(Math.floor(width / COLUMN_WIDTH) || 1, length);
-    const pos = Math.floor((width - (GRID_PADDING + cols * COLUMN_WIDTH)) / 2);
-    return {cols, pos};
-  }), shareReplay());
-
-  constructor() {
-  }
+    this.savedPos = Math.floor((width - (GRID_PADDING + cols * COLUMN_WIDTH)) / 2);
+    return {cols, pos: this.savedPos};
+  }));
 
   // also when notes list changes (just the quantity< and if it's smaler then current col num)
 
