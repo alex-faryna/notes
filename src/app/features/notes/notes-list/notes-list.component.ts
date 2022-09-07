@@ -1,50 +1,46 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
   OnInit,
-  ViewChild
+  QueryList,
+  ViewChildren
 } from '@angular/core';
-import {debounceTime, distinctUntilChanged, filter, map, tap} from "rxjs";
+import {debounceTime, distinctUntilChanged, filter, map, Subject} from "rxjs";
 import {rxsize} from "../../../shared/utils/rxsizable.utils";
-import {wrapGrid} from "animate-css-grid";
 import {Note, NoteStates} from "../../../shared/models/note.model";
-import {Color, ColorBubble} from "../../../shared/models/color.model";
-import {NotesService} from "../../../shared/services/notes.service";
+import {GridParams, NotesService} from "../../../shared/services/notes.service";
+import {wrapGrid} from "animate-css-grid";
 
-/*
-enum NoteCreationState {
-  NONE,
-  ANIMATION,
-  INPUT
-}*/
-
+// TODO: angular animation for ngFor elements
 @Component({
   selector: 'app-notes-list',
   templateUrl: './notes-list.component.html',
   styleUrls: ['./notes-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotesListComponent implements OnInit {
+export class NotesListComponent implements OnInit, AfterViewInit {
   public readonly noteStates = NoteStates;
-  private readonly columnWidth = 250;
-  @ViewChild("grid", {static: true}) public gridRef!: ElementRef;
+  @ViewChildren("grid") public gridRef!: QueryList<ElementRef>;
 
   @Input() set notes(value: Note[]) {
     this._notes = value;
-    this.updateGrid(); // hmm
+    // this.updateGrid(); // hmm
     // maybe try to optimize stuff in that function of grid items animation
     // but still good that it's decomposed from animation now
 
     //BUG: if we have 3 elemets but width for 4 then it says 4 cols
-    console.log(this.cols);
-    if (value?.length) {
-      this.noteStorage.test(Math.min(value.length, this.cols));
-      this.noteStorage.test();
-    }
+    // console.log(this.cols);
+    //if (value?.length) {
+    //this.noteStorage.gridResized(Math.min(value.length, this.cols));
+    //this.noteStorage.gridResized(this.width);
+    //}
+    this.noteStorage.valueLength(value?.length || 0);
   }
+
   public _notes: Note[] = [];
 
   /*@ViewChild("newNote") public newNoteRef!: ElementRef;
@@ -112,13 +108,16 @@ export class NotesListComponent implements OnInit {
   public _newNote: Color | null = null;*/
 
 
+  // componentstore here because many thinfs here are relate just to the current component
   //think about animation when data changes i guess
-  public cols = 1; // obs$ to store
-  private gridOffset = 0;
+  //public cols = 1; // obs$ to store
+  /*private gridOffset = 0;
   private gridAnimation = false; // as behaviorsubject
   private grid$ = rxsize(this.ref.nativeElement).pipe(
-    tap(() => {
+    tap(val => {
+      this.noteStorage.gridResized(val);
       if (!this.gridOffset) {
+        console.log(val);
         this.gridOffset = this.grid.offsetLeft;
         this.grid.style.left = `${this.gridOffset}px`;
       }
@@ -127,7 +126,7 @@ export class NotesListComponent implements OnInit {
     filter(arr => !this.gridAnimation && !!arr?.length), // double check these things if they are really needed
     map(([rect]) => rect.contentRect.width),
     distinctUntilChanged(),
-  );
+  );*/
 
   // when we resize, notify the service that we resized with the new values
   // of this component, the grid, and their widths
@@ -136,6 +135,18 @@ export class NotesListComponent implements OnInit {
 
   // the number of cols provided view input
   // the let of the grid can be provided via input too (or the service)
+  //
+  public data$: Subject<GridParams> = new Subject<GridParams>();
+
+  private animate?: () => void;
+  /*public gridData$ = this.noteStorage.gridData$.pipe(
+    tap(console.log),
+    tap(() => this.cdr.detectChanges())
+  );*/
+
+  /*public cols$ = this.noteStorage.cols$.pipe(tap(() => this.cdr.detectChanges()));
+  public gridPos$ = this.noteStorage.gridPos$.pipe(tap(() => this.cdr.detectChanges()));
+*/
 
   constructor(private ref: ElementRef,
               private cdr: ChangeDetectorRef,
@@ -156,13 +167,13 @@ export class NotesListComponent implements OnInit {
     // it works sometimes by itself sometimes it needs to be called
     // call animate only on resize i guess
     // when adding items it does automatically or what
-    const animate = wrapGrid(this.grid, {
+    /*const animate = wrapGrid(this.grid, {
       duration: 250,
       stagger: 5,
       onStart: () => this.gridAnimation = true,
       onEnd: () => {
         this.gridAnimation = false;
-        /*console.log("end");
+        / *console.log("end");
         console.log("---");
         console.log(this._newNote);
         console.log("---");
@@ -171,14 +182,39 @@ export class NotesListComponent implements OnInit {
           this._newNoteState = NoteCreationState.INPUT; // remove form here as it is not the place
           // after animation too i guess
           this.cdr.detectChanges();
-        }*/
+        }* /
       },
     }).forceGridAnimation;
     this.grid$.subscribe(() => {
       console.log("grid size changed by resize");
-      this.updateGrid();
-      animate(); // not delete
+      //this.updateGrid();
+      //animate(); // not delete
       ///
+    });*/
+    rxsize(this.ref.nativeElement)
+      .pipe(debounceTime(250)) //remove for some interesting real-time effects
+      .subscribe(([val]) => this.noteStorage.gridResized(val.contentRect.width));
+
+    this.noteStorage.gridData$.subscribe(val => {
+      this.data$.next(val);
+      this.cdr.detectChanges();
+    });
+
+    this.noteStorage.gridData$.pipe(
+      filter(() => !!this.animate),
+      map(({cols}) => cols),
+      distinctUntilChanged()
+    ).subscribe(() => this.animate!());
+  }
+
+  public ngAfterViewInit(): void {
+    this.gridRef.changes.subscribe(({first}) => {
+      this.animate = wrapGrid(first.nativeElement, {
+        duration: 250,
+        stagger: 5,
+
+
+      }).forceGridAnimation;
     });
   }
 
@@ -186,12 +222,12 @@ export class NotesListComponent implements OnInit {
     return el.id;
   }
 
-  private updateGrid(): void {
+  /*private updateGrid(): void {
     this.cols = Math.floor(this.width / this.columnWidth) || 1
     this.gridOffset = 0;
     this.cdr.detectChanges();
     this.gridRef.nativeElement.style.left = `${Math.floor((this.width - this.grid.clientWidth) / 2)}px`;
-  }
+  }*/
 
   private get width() {
     return this.ref.nativeElement.clientWidth;
@@ -202,6 +238,6 @@ export class NotesListComponent implements OnInit {
   }
 
   private get grid() {
-    return this.gridRef.nativeElement;
+    return this.gridRef; //.nativeElement;
   }
 }

@@ -13,6 +13,8 @@ export interface Note {
   test?: string;
   test2?: string;
 
+  color?: string;
+
   // maybe divide into data transfer object and view objects
   state?: NoteStates;
 }

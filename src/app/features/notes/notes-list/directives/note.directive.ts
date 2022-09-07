@@ -9,7 +9,7 @@ export class NoteDirective implements AfterViewInit {
   constructor(private ref: ElementRef) {}
 
   public ngAfterViewInit(): void {
-    console.log("note");
+    // console.log("note");
     const note = this.ref.nativeElement;
     note.parentElement.style.gridRowEnd = `span ${note.clientHeight + this.gap}`;
   }

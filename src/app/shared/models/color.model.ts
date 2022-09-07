@@ -6,7 +6,6 @@ export interface Color {
 export type ColorBubble = {color: Color, event: MouseEvent}
 
 export const COLORS = [
-  "#ffffff",
   "#ff7459",
   "#81d26e",
   "#5678ff",

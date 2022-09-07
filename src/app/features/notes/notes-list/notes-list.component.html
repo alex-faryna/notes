@@ -1,5 +1,6 @@
-<div #grid class="grid"
-     [style.grid-template-columns]="'repeat(' + cols + ', auto)'">
+<div *ngIf="data$ | async as data" #grid class="grid"
+     [style.left]="data.pos + 'px'"
+     [style.grid-template-columns]="'repeat(' + data.cols + ', auto)'">
   <ng-container *ngIf="_notes"> <!-- remove -->
     <!-- div #newNote *ngIf="_newNote"
          [style.visibility]="_newNoteState === noteCreationState.INPUT ? 'visible' : 'hidden'">
@@ -12,6 +13,7 @@
     <div *ngFor="let note of _notes; trackBy: trackByMethod; let i = index"
          class="block no-select">
       <app-note-list-item note [class.hidden]="note?.state === noteStates.CREATE"
+                          [color]="note?.color"
                           [title]="note.title"
                           [content]="note.content"
                           [test]="note?.test"

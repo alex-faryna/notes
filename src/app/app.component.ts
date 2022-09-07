@@ -27,14 +27,14 @@ export class AppComponent {
       state: NoteStates.CREATE,
     }, ...this.notes$.value]);
 
-    /*
     setTimeout(() => {
       this.notes$.next([{
         id: 10,
         title: "New title",
         content: "New content",
         state: NoteStates.EDIT,
+        color: val.color.color,
       }, ...this.notes$.value.slice(1)]);
-    }, 3000);*/
+    }, 3000);
   }
 }

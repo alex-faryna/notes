@@ -1,6 +1,15 @@
-import { Injectable } from '@angular/core';
-import {BehaviorSubject, delay, Observable, of, tap} from "rxjs";
-import {Note, NoteStates} from "../models/note.model";
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay} from "rxjs";
+import {Note} from "../models/note.model";
+
+// maybe we can make a service ONLY for the grid
+export const COLUMN_WIDTH = 250;
+export const GRID_PADDING = 10;
+
+export interface GridParams {
+  cols: number;
+  pos: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -70,12 +79,35 @@ export class NotesService {
   }*/
 
   // sets grid to keep track of
-
   // myabe really move the resize to service
+  // width of whole notes list component
 
-  public test(val: unknown): void {
-    console.log(val);
+  public gridResized(val: number): void {
+    this.gridWidth.next(val);
   }
+
+  // the store would take this automatically
+  public valueLength(val: number): void {
+    this.dataLength.next(val);
+  }
+
+  // that's all we need to get the number of columns
+  private gridWidth = new BehaviorSubject<number>(0);
+  private dataLength = new BehaviorSubject<number>(0);
+
+  public gridData$ = combineLatest([
+    this.gridWidth.pipe(distinctUntilChanged()),
+    this.dataLength.pipe(distinctUntilChanged()),
+  ]).pipe(map(([width, length]) => {
+    const cols = Math.min(Math.floor(width / COLUMN_WIDTH) || 1, length);
+    const pos = Math.floor((width - (GRID_PADDING + cols * COLUMN_WIDTH)) / 2);
+    return {cols, pos};
+  }), shareReplay());
+
+  constructor() {
+  }
+
+  // also when notes list changes (just the quantity< and if it's smaler then current col num)
 
   // getter below, storage above
 
@@ -132,7 +164,7 @@ export class NotesService {
       title: "Note 8",
       content: "Content 2",
     },
-  ].slice(0,3));
+  ].slice(0, 3));
 
   private cc() {
     setTimeout(() => {
