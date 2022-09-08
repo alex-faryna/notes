@@ -1,17 +1,8 @@
-<div *ngIf="data$ | async as data" #grid class="grid"
+<div *ngIf="gridOptions$ | async as data" #grid class="grid"
      [@notesList]="_notes.length"
      [style.left]="data.pos + 'px'"
      [style.grid-template-columns]="'repeat(' + data.cols + ', auto)'">
-  <!-- [@notesList]="_notes.length" -->
-  <!-- div #newNote *ngIf="_newNote"
-       [style.visibility]="_newNoteState === noteCreationState.INPUT ? 'visible' : 'hidden'">
-    <app-note-list-item note
-                        title="New title"
-                        content="New content"
-                        [color]="_newNote.color"
-    ></app-note-list-item>
-  </div-->
-  <div *ngFor="let note of _notes; trackBy: trackByMethod; let i = index"
+  <div *ngFor="let note of _notes; trackBy: idFn"
        class="block no-select">
     <app-note-list-item note [class.hidden]="note?.state === noteStates.CREATE"
                         class="stale-note"
@@ -23,8 +14,3 @@
     ></app-note-list-item>
   </div>
 </div>
-<!-- div *ngIf="_newNoteState === noteCreationState.ANIMATION" #hero
-     class="fixed color-bubble hero-bubble z1 no-select no-pointer"
-     [style]="{left: 0, top: 0}"
-     [style.background]="_newNote?.color"
-></div -->
