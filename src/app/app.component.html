@@ -1,9 +1,8 @@
 <app-side-menu (bubbleClick)="addNote($event)"
 ></app-side-menu>
-<app-notes-list [notes]="(notes$ | async) || []"
-></app-notes-list>
-<app-hero-bubble *ngIf="selectedBubble"
+<app-notes-list></app-notes-list>
+<!-- app-hero-bubble *ngIf="selectedBubble"
                  [color]="selectedBubble.color"
                  [from]="from"
                  [to]="to"
-></app-hero-bubble>
+></app-hero-bubble -->

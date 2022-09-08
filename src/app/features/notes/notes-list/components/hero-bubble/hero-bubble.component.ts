@@ -4,7 +4,7 @@ import {animate, state, style, transition, trigger} from "@angular/animations";
 
 @Component({
   selector: 'app-hero-bubble',
-  templateUrl: './hero-bubble.component.html',
+  template: '',
   styleUrls: ['./hero-bubble.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [

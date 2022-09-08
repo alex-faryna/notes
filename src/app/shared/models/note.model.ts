@@ -18,3 +18,8 @@ export interface Note {
   // maybe divide into data transfer object and view objects
   state?: NoteStates;
 }
+
+export interface NotesState {
+  notes: Note[];
+  width: number;
+}
