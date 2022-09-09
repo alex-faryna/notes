@@ -1,7 +1,8 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {ColorBubble} from "./shared/models/color.model";
 import {Store} from "@ngrx/store";
-import {addNote, AppState, deleteNote, loadNotes} from "./state/notes.state";
+import {addNote, AppState, deleteNote, loadNotes, posSelector} from "./state/notes.state";
+import {map} from "rxjs/operators";
 
 @Component({
   selector: 'app-root',
@@ -14,22 +15,31 @@ export class AppComponent {
   public from!: { x: number, y: number };
   public to!: { x: number, y: number };
 
+  public to$ = this.store.select(posSelector).pipe(map(pos => ({x: pos + 72, y: 10})));
+
   constructor(private store: Store<AppState>) {
     setTimeout(() => {
       // this.store.dispatch(deleteNote({id: 3}));
       //
-      this.store.dispatch(addNote({color: "!!!"}));
+      // this.store.dispatch(addNote({color: "!!!"}));
     }, 6000);
 
 
-    this.store.dispatch(loadNotes());
+    this.store.dispatch(loadNotes({from: 0, count: 10}));
   }
 
   public addNote(val: ColorBubble): void {
     // change to store mechanism so we don't explicitly wait
-    // this.selectedBubble = val;
+
 
     this.store.dispatch(addNote({color: val.color.color}));
+
+    const target = (val.event.target as HTMLElement).getBoundingClientRect();
+    this.from = {
+      x: target.left,
+      y: target.top,
+    }
+    this.selectedBubble = val;
 
 
     /*const target = (val.event.target as HTMLElement).getBoundingClientRect();

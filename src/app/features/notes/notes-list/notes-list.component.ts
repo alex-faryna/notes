@@ -58,8 +58,8 @@ export class NotesListComponent implements OnInit {
     });
 
     combineLatest([
-      this.store.select(notesSelector).pipe(tap(val => this.notes = val)),
-      this.store.select(colsSelector).pipe(tap(val => this.cols = val))
+      this.store.select(colsSelector).pipe(tap(val => this.cols = val)),
+      this.store.select(notesSelector).pipe(tap(val => this.notes = val))
     ]).subscribe(() => {
       this.cdr.detectChanges();
       animate();

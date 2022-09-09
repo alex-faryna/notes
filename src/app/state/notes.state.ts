@@ -1,8 +1,8 @@
 import {createAction, createReducer, createSelector, on, props} from "@ngrx/store";
-import {NotesState, NoteStates} from "../shared/models/note.model";
+import {Note, NotesState, NoteStates} from "../shared/models/note.model";
 import {Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
-import {delay, EMPTY, of, tap} from "rxjs";
+import {delay, NEVER, of, tap} from "rxjs";
 import {catchError, map, mergeMap} from 'rxjs/operators';
 
 export const COLUMN_WIDTH = 250;
@@ -20,7 +20,8 @@ export interface AppState {
 export const addNote = createAction("Create new empty note", props<{ color: string }>());
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
 export const widthChanged = createAction("Width changed", props<{ width: number }>());
-export const loadNotes = createAction("Load notes");
+export const loadNotes = createAction("Load notes", props<{ from: number, count: number }>());
+export const loadSuccess = createAction("Load success", props<{ notes: Note[], loaded: number }>());
 
 // lock states when doing animations, so they don't interfere with each other
 
@@ -53,6 +54,7 @@ export const posSelector = createSelector(
 const initialNotesState: NotesState = {
   notes: [],
   width: 0,
+  loaded: 0,
 }
 
 export const notesReducer = createReducer(
@@ -84,19 +86,53 @@ export const notesReducer = createReducer(
     ...state,
     notes: state.notes.filter(note => note.id !== id),
   })),
+  on(loadSuccess, (state, val) => ({
+    ...state,
+    loaded: val.loaded,
+    notes: [...state.notes, ...val.notes],
+  }))
 );
+
+// we have 2 notes and space for more, it loads in the second row instead of the first (guess we need the max columns or smth like this)
+
+// but then test if we add many items how it behaves there too
+
+// maybe for maximum coolness we need to store the values in the store (and when we add new items or smth we forcibly recalculate them in the store directly?
+// or what because we trigger cdr before those things but on the other size
+// everything is synchronous here so hmm
 
 @Injectable()
 export class NotesEffects {
-  loadMovies$ = createEffect(() => this.actions$.pipe(
+  loadNotes = createEffect(() => this.actions$.pipe(
       ofType(loadNotes),
-      mergeMap(() => of([]).pipe(
-        tap(() => console.log("effct something")),
+      mergeMap(() => of([{id: 50, title: "50", content: "50", state: NoteStates.VIEW}]).pipe(
+        tap(() => console.log("effect something")),
         delay(3000),
-        tap(() => console.log("loaded something")),
-        //map(movies => ({type: '[Movies API] Movies Loaded Success', payload: movies})),
-        // catchError(() => EMPTY)
+        map(val => loadSuccess({notes: val, loaded: 1})),
+        catchError(() => NEVER) // just show something or smth alert or similar
       ))
+    )
+  );
+
+  // success add note event:
+  // do nothing
+
+  // error add note event:
+  // add to failed events in state, that's it
+  // failed events can be create edit delete
+  // basically a map
+  // when interacting with server then use one action but maybe with bulk actions: add and edit in one request
+
+  // then new effect which checks each 3 seconds or when manual trigger then retry saving, if success then success add not event
+
+  // send request to server, if ok then success add note event
+  // if not ok then error add note event
+
+
+  addNote = createEffect(() => this.actions$.pipe(
+      ofType(addNote),
+      mergeMap(val => of(val)),
+      tap(() => console.log('custom effect')),
     ), {dispatch: false}
   );
 

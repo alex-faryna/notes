@@ -22,4 +22,5 @@ export interface Note {
 export interface NotesState {
   notes: Note[];
   width: number;
+  loaded: number;
 }

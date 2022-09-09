@@ -9,31 +9,30 @@ import {animate, state, style, transition, trigger} from "@angular/animations";
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('hero', [
-      state('void', style({ background: "red" })),
+      state('*', style({ visibility: "hidden" })),
       transition(':enter', [
-        animate(1500, style({background: "{{color}}"}))
-      ], {params: {color: "blue"}})
+        style({ background: "{{color}}", left: "{{x1}}px", top: "{{y1}}px", visibility: "visible" }),
+        animate(250, style({background: "{{color}}", left: "{{x2}}px", top: "{{y2}}px"}))
+      ], {params: {color: "#000000", x2: 0, y2: 0}})
     ])
   ]
 })
-export class HeroBubbleComponent implements OnInit {
+export class HeroBubbleComponent {
   @HostBinding('@hero') private get hero () {
     return {
       value: "hero",
       params: {
-        color: this.color.color
+        color: this.color.color,
+        x1: this.from.x,
+        y1: this.from.y,
+        x2: this.to.x,
+        y2: this.to.y,
       }
     }
   }
   @Input() public color!: Color;
   @Input() public from!: {x: number, y: number};
   @Input() public to!: {x: number, y: number};
-
-  ngOnInit(): void {
-    console.log(this.to);
-  }
-
-  //Output animation finished
 }
 
 // animation
