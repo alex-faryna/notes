@@ -1,14 +1,16 @@
 <div #grid class="grid"
+     [@notesList]="notes.length"
+     [style.left]="pos + 'px'"
      [style.grid-template-columns]="'repeat(' + cols + ', auto)'">
-  <ng-container *ngIf="notes$ | async as notes">
-    <div *ngFor="let note of notes; trackBy: trackByMethod; let i = index"
-         style="display: block">
-      <app-note-list-item note
-                          [title]="note.title"
-                          [content]="note.content"
-                          [test]="note?.test"
-                          [test2]="note?.['test2']"
-      ></app-note-list-item>
-    </div>
-  </ng-container>
+  <div *ngFor="let note of notes; trackBy: id"
+       class="block no-select">
+    <app-note-list-item note [class.hidden]="note?.state === noteStates.CREATE"
+                        [class.note-view]="note?.state === noteStates.VIEW"
+                        [color]="note?.color"
+                        [title]="note.title"
+                        [content]="note.content"
+                        [test]="note?.test"
+                        [test2]="note?.['test2']"
+    ></app-note-list-item>
+  </div>
 </div>

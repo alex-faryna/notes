@@ -1,4 +1,5 @@
-import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
+import {getContrastColor} from "../../../../../shared/models/color.model";
 
 @Component({
   selector: 'app-note-list-item',
@@ -6,16 +7,18 @@ import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
   styleUrls: ['./note-list-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NoteListItemComponent implements OnInit {
-
+export class NoteListItemComponent {
   @Input() public title = "";
   @Input() public content = "";
   @Input() public test? = "";
   @Input() public test2? = "";
 
-  constructor() { }
+  @Input()
+  public set color(val: string | undefined) {
+    this._color = val ? val : this._color;
+    this.textColor = getContrastColor(this._color);
+  };
 
-  ngOnInit(): void {
-  }
-
+  public _color = "#424242";
+  public textColor = "#ffffff";
 }

@@ -1,0 +1,10 @@
+<div class="flex-column relative">
+  <button mat-mini-fab class="z1" (click)="showColors = !showColors; animateBubbles(showColors)">
+    <mat-icon>add</mat-icon>
+  </button>
+  <div *ngFor="let color of colors" #colorBubble
+       class="color-bubble absolute pointer"
+       [style.background]="color.color"
+       (click)="bubbleClicked(color, $event)"
+  ></div>
+</div>

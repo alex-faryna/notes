@@ -1,72 +1,72 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {debounceTime, distinctUntilChanged, filter, map, tap} from "rxjs";
+import {combineLatest, debounceTime, tap} from "rxjs";
 import {rxsize} from "../../../shared/utils/rxsizable.utils";
+import {Note, NoteStates} from "../../../shared/models/note.model";
 import {wrapGrid} from "animate-css-grid";
-import {NotesService} from "../../../shared/services/notes.service";
-import {Note} from "../../../shared/models/note.model";
+import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
+import {Store} from "@ngrx/store";
+import {AppState, colsSelector, notesSelector, posSelector, widthChanged} from "../../../state/notes.state";
 
 @Component({
   selector: 'app-notes-list',
   templateUrl: './notes-list.component.html',
   styleUrls: ['./notes-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('notesList', [
+      transition('* => *', [
+        query(':enter .note-view',
+          [
+            style({opacity: 0, paddingTop: '20px'}),
+            stagger('75ms', animate('150ms linear'))
+          ],
+          {optional: true}
+        ),
+      ])
+    ])
+  ]
 })
 export class NotesListComponent implements OnInit {
+  public readonly noteStates = NoteStates;
   @ViewChild("grid", {static: true}) public gridRef!: ElementRef;
-  public notes$ = this.notesService.getNotesList();
-  public cols = 1;
 
-  private readonly columnWidth = 250;
-  private gridOffset = 0;
-  private gridAnimation = false;
-  private grid$ = rxsize(this.ref.nativeElement).pipe(
-    tap(() => {
-      if (!this.gridOffset) {
-        this.gridOffset = this.grid.offsetLeft;
-        this.grid.style.left = `${this.gridOffset}px`;
-      }
-    }),
-    debounceTime(250),
-    filter(arr => !this.gridAnimation && !!arr?.length), // double check these things if they are really needed
-    map(([rect]) => rect.contentRect.width),
-    distinctUntilChanged(),
-  );
+  public notes: Note[] = [];
+  public pos = 0;
+  public cols = 1;
 
   constructor(private ref: ElementRef,
               private cdr: ChangeDetectorRef,
-              private notesService: NotesService) {
+              private store: Store<AppState>) {
   }
 
   public ngOnInit(): void {
-    this.updateGrid();
-    const animate = wrapGrid(this.grid, {
+    const animate = wrapGrid(this.gridRef.nativeElement, {
       duration: 250,
       stagger: 5,
-      onStart: () => this.gridAnimation = true,
-      onEnd: () => this.gridAnimation = false,
     }).forceGridAnimation;
-    this.grid$.subscribe(() => {
-      this.updateGrid();
+
+    rxsize(this.ref.nativeElement)
+      // tweak //remove for some interesting real-time effects
+      .pipe(debounceTime(250))
+      .subscribe(([val]) => {
+        this.store.dispatch(widthChanged({width: val.contentRect.width}));
+      });
+
+    this.store.select(posSelector).subscribe(val => {
+      this.pos = val;
+      this.cdr.detectChanges();
+    });
+
+    combineLatest([
+      this.store.select(colsSelector).pipe(tap(val => this.cols = val)),
+      this.store.select(notesSelector).pipe(tap(val => this.notes = val))
+    ]).subscribe(() => {
+      this.cdr.detectChanges();
       animate();
     });
   }
 
-  public trackByMethod(index: number, el: Note): number {
+  public id(index: number, el: Note): number {
     return el.id;
-  }
-
-  private updateGrid(): void {
-    this.cols = Math.floor(this.width / this.columnWidth) || 1
-    this.gridOffset = 0;
-    this.cdr.detectChanges();
-    this.gridRef.nativeElement.style.left = `${Math.floor((this.width - this.grid.clientWidth) / 2)}px`;
-  }
-
-  private get width() {
-    return this.ref.nativeElement.clientWidth;
-  }
-
-  private get grid() {
-    return this.gridRef.nativeElement;
   }
 }

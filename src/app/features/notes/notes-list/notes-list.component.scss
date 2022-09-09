@@ -3,10 +3,11 @@
   width: 100%;
   display: block;
   position: relative;
+  // padding-top: 30px;
 
   .grid {
     position: absolute;
-    transition: left 0.15s linear;
+    transition: left 0.25s ease-out;
     height: 100%;
     display: grid;
     grid-gap: 0;
