@@ -11,6 +11,7 @@ import {SideMenuModule} from "./features/side-menu/side-menu.module";
 import { StoreModule } from '@ngrx/store';
 import {NotesEffects, notesReducer} from "./state/notes.state";
 import {EffectsModule} from "@ngrx/effects";
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import {EffectsModule} from "@ngrx/effects";
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatButtonModule,

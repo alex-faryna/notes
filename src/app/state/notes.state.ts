@@ -4,6 +4,7 @@ import {Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import {delay, NEVER, of, tap} from "rxjs";
 import {catchError, map, mergeMap} from 'rxjs/operators';
+import {NotesService} from "../shared/services/notes.service";
 
 export const COLUMN_WIDTH = 250;
 export const GRID_PADDING = 10;
@@ -37,6 +38,10 @@ export const notesLengthSelector = createSelector(
 export const widthSelector = createSelector(
   selectNotesState,
   state => state.width
+);
+export const maxColsSelector = createSelector(
+  widthSelector,
+  width => Math.floor(width / COLUMN_WIDTH)
 );
 export const colsSelector = createSelector(
   notesLengthSelector,
@@ -86,11 +91,15 @@ export const notesReducer = createReducer(
     ...state,
     notes: state.notes.filter(note => note.id !== id),
   })),
-  on(loadSuccess, (state, val) => ({
-    ...state,
-    loaded: val.loaded,
-    notes: [...state.notes, ...val.notes],
-  }))
+  on(loadSuccess, (state, val) => {
+    console.log(state);
+
+    return ({
+      ...state,
+      loaded: val.loaded,
+      notes: [...state.notes, ...val.notes],
+    });
+  })
 );
 
 // we have 2 notes and space for more, it loads in the second row instead of the first (guess we need the max columns or smth like this)
@@ -101,14 +110,20 @@ export const notesReducer = createReducer(
 // or what because we trigger cdr before those things but on the other size
 // everything is synchronous here so hmm
 
+
+// we have problem:
+// we load these notes, but when displaying it either displays already in 3 columns but no animation in ng for
+// or it displays as one column and only then animation
+// if we have here delay then it loads all and no animation then it just slides (and lags a lot bro)
 @Injectable()
 export class NotesEffects {
   loadNotes = createEffect(() => this.actions$.pipe(
       ofType(loadNotes),
-      mergeMap(() => of([{id: 50, title: "50", content: "50", state: NoteStates.VIEW}]).pipe(
+      mergeMap(() => this.notesService.getAllNotes().pipe(
+        tap(console.log),
         tap(() => console.log("effect something")),
-        delay(3000),
-        map(val => loadSuccess({notes: val, loaded: 1})),
+        // delay(1100),
+        map(notes => loadSuccess({notes, loaded: 1})),
         catchError(() => NEVER) // just show something or smth alert or similar
       ))
     )
@@ -138,6 +153,7 @@ export class NotesEffects {
 
   constructor(
     private actions$: Actions,
+    private notesService: NotesService,
   ) {
   }
 }

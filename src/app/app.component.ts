@@ -1,7 +1,14 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {ColorBubble} from "./shared/models/color.model";
 import {Store} from "@ngrx/store";
-import {addNote, AppState, deleteNote, loadNotes, posSelector} from "./state/notes.state";
+import {
+  addNote,
+  AppState,
+  colsSelector,
+  deleteNote,
+  loadNotes,
+  posSelector
+} from "./state/notes.state";
 import {map} from "rxjs/operators";
 
 @Component({
@@ -18,13 +25,15 @@ export class AppComponent {
   public to$ = this.store.select(posSelector).pipe(map(pos => ({x: pos + 72, y: 10})));
 
   constructor(private store: Store<AppState>) {
+
+
+    // this.store.select(maxColsSelector).subscribe(val => console.log(`max cols: ${val}`));
+    this.store.select(colsSelector).subscribe(val => console.log(`cols: ${val}`));
+    this.store.select(posSelector).subscribe(val => console.log(`pos: ${val}`));
+
     setTimeout(() => {
-      // this.store.dispatch(deleteNote({id: 3}));
-      //
-      // this.store.dispatch(addNote({color: "!!!"}));
-    }, 6000);
 
-
+    });
     this.store.dispatch(loadNotes({from: 0, count: 10}));
   }
 

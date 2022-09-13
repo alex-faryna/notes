@@ -52,13 +52,18 @@ export class NotesListComponent implements OnInit {
         this.store.dispatch(widthChanged({width: val.contentRect.width}));
       });
 
+    this.store.select(colsSelector).subscribe(val => {
+      this.cols = val;
+      this.cdr.detectChanges();
+    });
+
     this.store.select(posSelector).subscribe(val => {
       this.pos = val;
       this.cdr.detectChanges();
     });
 
     combineLatest([
-      this.store.select(colsSelector).pipe(tap(val => this.cols = val)),
+      this.store.select(colsSelector),
       this.store.select(notesSelector).pipe(tap(val => this.notes = val))
     ]).subscribe(() => {
       this.cdr.detectChanges();
