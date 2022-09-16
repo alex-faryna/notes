@@ -1,10 +1,11 @@
 <div #grid class="grid"
-     [@notesList]="notes.length"
-     [style.left]="pos + 'px'"
-     [style.grid-template-columns]="'repeat(' + cols + ', auto)'">
+     [class.loaded]="loaded"
+     [style.transform]="'translateZ(0) translateX(' + pos + 'px)'"
+     [style.grid-template-columns]="'repeat(' + cols + ', 250px)'">
   <div *ngFor="let note of notes; trackBy: id"
        class="block no-select">
-    <app-note-list-item note [class.hidden]="note?.state === noteStates.CREATE"
+    <app-note-list-item note
+                        [class.hidden]="note?.state === noteStates.CREATE"
                         [class.note-view]="note?.state === noteStates.VIEW"
                         [color]="note?.color"
                         [title]="note.title"
@@ -14,3 +15,4 @@
     ></app-note-list-item>
   </div>
 </div>
+<!-- [@notesList]="notes.length" -->

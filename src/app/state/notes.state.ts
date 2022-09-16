@@ -43,15 +43,10 @@ export const maxColsSelector = createSelector(
   widthSelector,
   width => Math.floor(width / COLUMN_WIDTH)
 );
-export const colsSelector = createSelector(
-  notesLengthSelector,
-  widthSelector,
-  (length, width) =>
-    Math.min(Math.floor(width / COLUMN_WIDTH) || 1, length),
-);
+
 export const posSelector = createSelector(
   widthSelector,
-  colsSelector,
+  maxColsSelector,
   (width, cols) =>
     Math.max(Math.floor((width - (GRID_PADDING + cols * COLUMN_WIDTH)) / 2), 0)
 )
