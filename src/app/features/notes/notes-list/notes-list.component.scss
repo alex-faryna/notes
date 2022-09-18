@@ -1,4 +1,4 @@
-:host {
+/*:host {
   height: 100%;
   width: 100%;
   display: block;
@@ -22,5 +22,24 @@
     > * {
       transform: translateZ(0);
     }
+  }
+}
+*/
+
+:host {
+  width: 100%;
+  position: relative;
+  // transform: translateZ(0);
+  will-change: transform;
+  transform: translate(0, 0);
+  transition: transform 300ms ease-out 50ms;
+
+  .note {
+    // maybe will change - creates new layer
+    position: absolute;
+    // backface-visibility: hidden;
+    // will-change: transform;
+    transform: translate(0, 0);
+    transition: transform 350ms ease-out;
   }
 }

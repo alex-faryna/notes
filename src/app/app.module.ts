@@ -27,7 +27,7 @@ import {HttpClientModule} from "@angular/common/http";
     MatIconModule,
     SideMenuModule,
     StoreModule.forRoot({notes: notesReducer}),
-    EffectsModule.forRoot([NotesEffects])
+    // EffectsModule.forRoot([NotesEffects])
   ],
   providers: [],
   bootstrap: [AppComponent]

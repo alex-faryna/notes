@@ -1,4 +1,4 @@
-<div #grid class="grid"
+<!-- div #grid class="grid"
      [class.loaded]="loaded"
      [style.transform]="'translateZ(0) translateX(' + pos + 'px)'"
      [style.grid-template-columns]="'repeat(' + cols + ', 250px)'">
@@ -14,5 +14,20 @@
                         [test2]="note?.['test2']"
     ></app-note-list-item>
   </div>
-</div>
+</div -->
 <!-- [@notesList]="notes.length" -->
+<!-- but the text can be selectable -->
+<app-note-list-item *ngFor="let note of notes$ | async; trackBy: id" #note
+                    class="note no-select"
+                    [color]="note?.color"
+                    [title]="note.title"
+                    [content]="note.content"
+                    [test]="note?.test"
+                    [test2]="note?.['test2']"
+></app-note-list-item>
+<!-- div class="grid">
+  <div
+       >
+
+  </div>
+</div -->

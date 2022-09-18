@@ -26,7 +26,7 @@ export class AppComponent {
     setTimeout(() => {
 
     });
-    this.store.dispatch(loadNotes({from: 0, count: 10}));
+    // this.store.dispatch(loadNotes({from: 0, count: 10}));
   }
 
   public addNote(val: ColorBubble): void {

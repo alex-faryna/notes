@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Input} from '@angular/core';
 import {getContrastColor} from "../../../../../shared/models/color.model";
 
 @Component({
@@ -21,4 +21,10 @@ export class NoteListItemComponent {
 
   public _color = "#424242";
   public textColor = "#ffffff";
+
+  constructor(private ref: ElementRef) {}
+
+  public get elem(): HTMLElement {
+    return this.ref.nativeElement;
+  }
 }
