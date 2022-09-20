@@ -41,9 +41,9 @@ export class NotesListComponent implements OnInit {
   public notes$ = this.store.select(notesSelector).pipe(
     tap(() => setTimeout(() => {
       const heights = this.notes?.toArray().map(note => note.elem.clientHeight);
-      this.gridService.relayout(heights || []);
+      //this.gridService.relayout(heights || []);
       this.layoutAnimation(this.gridService.layout);
-    }))
+    })),
   );
 
   constructor(private ref: ElementRef,
@@ -54,6 +54,10 @@ export class NotesListComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    setTimeout(() => {
+      this.gridService.appendLayout([100, 20, 30, 40, 50]);
+    }, 14000);
+    // first time layout calculating goes without animation and without debounce (after view init)
     this.resize$.observe(this.ref.nativeElement)
       .pipe(debounceTime(250))
       .subscribe(width => {
@@ -63,8 +67,6 @@ export class NotesListComponent implements OnInit {
         // console.log(layout);
         this.layoutAnimation(this.gridService.layout)
       });
-
-    // the heights the first time are hard then they are easy
 
     // this.gridService.gridChanged()
     /*const animate = wrapGrid(this.gridRef.nativeElement, {
@@ -103,9 +105,8 @@ export class NotesListComponent implements OnInit {
 
   // only animation on visible elements
   public layoutAnimation(layout: [number, number][]): void {
-    const delay = (this.notes?.length || []) > 40 ? 500 : 0;
     this.notes?.toArray().map(note => note.elem).forEach((elem: HTMLElement, i) => {
-
+      elem.style.transitionDelay = `${i * 5}ms`;
       elem.style.transform = `translate(${layout[i][0]}px, ${layout[i][1]}px)`;
     });
     this.ref.nativeElement.style.transform = `translate(${this.gridService.pos}px, 0)`;
