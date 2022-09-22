@@ -8,7 +8,7 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
-import {debounceTime, delay, take, tap} from "rxjs";
+import {asap, debounceTime, delay, filter, take, tap} from "rxjs";
 import {Note, NoteStates} from "../../../shared/models/note.model";
 import {Store} from "@ngrx/store";
 import {AppState, notesAnimation, notesSelector} from "../../../state/notes.state";
@@ -17,8 +17,6 @@ import {GridService, Layout} from "./services/grid.service";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
 import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
 
-
-// appear animation not working
 @Component({
   selector: 'app-notes-list',
   templateUrl: './notes-list.component.html',
@@ -26,19 +24,17 @@ import {animate, query, stagger, style, transition, trigger} from "@angular/anim
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ResizeService, GridService],
 })
-export class NotesListComponent implements OnInit, AfterViewInit {
+export class NotesListComponent implements OnInit {
   public readonly noteStates = NoteStates;
 
-  @ViewChildren("note") public notes?: QueryList<NoteListItemComponent>;
+  @ViewChildren("note") public notes!: QueryList<NoteListItemComponent>;
 
   public notes$ = this.store.select(notesSelector).pipe(
+    filter(notes => notes.length > 0),
     tap(notes => setTimeout(() => {
       console.log("notes change");
-      const heights = this.notes?.toArray().map(note => note.elem.clientHeight);
-      this.gridService.relayout(heights || []);
-      if (notes?.length) {
-        this.layoutAnimation(this.gridService.layout, notes);
-      }
+      this.gridService.relayout(this.notes);
+      this.layoutAnimation(this.gridService.layout, notes);
     })),
   );
 
@@ -54,7 +50,6 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     gridSize$.pipe(take(1))
       .subscribe(width => this.gridService.gridChanged(width));
     gridSize$.pipe(
-      tap(() => console.log("!")),
       debounceTime(100),
       delay(50)
     ).subscribe(width => {
@@ -66,20 +61,9 @@ export class NotesListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  public ngAfterViewInit() {
-    this.notes?.changes.subscribe(val => {
-      console.log("changes");
-      console.log(val);
-    });
-  }
-
   // maybe effect? for server loading??
-
   // only animation on visible elements
   public layoutAnimation(layout: Layout, notes: Note[]): void {
-    console.log("anim");
-    console.log(notes.length);
-    console.log(layout);
     const len = this.notes?.length || 0;
     const ids: number[] = [];
     for (let i = 0; i < len; i++) {
@@ -106,12 +90,10 @@ export class NotesListComponent implements OnInit, AfterViewInit {
           fill: "backwards",
         });
           anim.onfinish = () => {
-            // this.notes!.get(i)!.elem.rem
             if (i + 1 === len) {
               this.store.dispatch(notesAnimation({ids}));
             }
             // this.notes!.get(i)!.elem.style.opacity = "1";
-            this.notes!.get(i)!.elem.style.transition = "transform 300ms ease-out";
             this.notes!.get(i)!.elem.style.transitionDelay = `${i * 5}ms`;
           }
 
@@ -127,12 +109,10 @@ export class NotesListComponent implements OnInit, AfterViewInit {
         this.notes!.get(i)!.elem.style.opacity = "1";
         this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;*/
       } else {
-
         //console.log("not ok");
         //console.log(notes[i]);
         //this.notes!.get(i)!.elem.style.transition = "transform 100ms ease-out";
         //this.notes!.get(i)!.elem.style.transitionDelay = `${i * 5}ms`;
-        console.log(i);
         // this opacity should be set in anoyher place
         // or try to play with opacity: 1 in css and then just set the opacity to 0 in the animation
         this.notes!.get(i)!.elem.style.opacity = "1"; // try with this in comment: should move but the create note should not be created

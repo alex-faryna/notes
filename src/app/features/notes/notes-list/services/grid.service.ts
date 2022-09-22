@@ -1,8 +1,9 @@
-import {Injectable} from '@angular/core';
+import {Injectable, QueryList} from '@angular/core';
+import {NoteListItemComponent} from "../components/note-list-item/note-list-item.component";
 
 const MAX_COLS = 10;
-const NOTE_WIDTH = 250;
 const GRID_PADDING = 10;
+export const NOTE_WIDTH = 250;
 
 export type Position = [number, number];
 export type Layout = Position[];
@@ -28,9 +29,8 @@ export class GridService {
     this.pos = Math.max(Math.floor((width - (GRID_PADDING + this.cols * NOTE_WIDTH)) / 2), 0);
   }
 
-  public relayout(noteHeights: number[]): void {
-    console.log("big relayout");
-    const len = noteHeights.length;
+  public relayout(notes: QueryList<NoteListItemComponent>): void {
+    const len = notes.length;
     for (let i = 0;i < 10;i++) {
       this.columnHeights[i] = [...Array(i + 1)].map(() => 0);
       const res: Layout = [];
@@ -39,7 +39,7 @@ export class GridService {
         const min = Math.min(...colHeights);
         const idx = colHeights.indexOf(min);
         res.push([idx * NOTE_WIDTH, min]);
-        colHeights[idx] = colHeights[idx] + noteHeights[n] + GRID_PADDING;
+        colHeights[idx] += notes.get(n)!.elem.clientHeight;
       }
       this.layouts[i] = res;
     }

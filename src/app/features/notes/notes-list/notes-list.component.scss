@@ -5,9 +5,8 @@
   .note {
     position: absolute;
     will-change: transform;
+    opacity: 0;
     transform: translate(0, 0);
-    opacity: 0; // keep so it does not flicker
-    // transition: opacity 100ms ease-out; //, transform 250ms ease-out;
     transition: transform 250ms ease-out;
     display: block;
   }
