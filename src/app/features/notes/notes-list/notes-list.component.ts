@@ -1,23 +1,21 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
-  OnChanges,
-  OnInit, QueryList,
-  SimpleChanges,
-  ViewChild, ViewChildren
+  ElementRef, HostBinding,
+  OnInit,
+  QueryList,
+  ViewChildren
 } from '@angular/core';
-import {combineLatest, debounceTime, tap} from "rxjs";
-import {rxsize} from "../../../shared/utils/rxsizable.utils";
+import {debounceTime, delay, take, tap} from "rxjs";
 import {Note, NoteStates} from "../../../shared/models/note.model";
-import {wrapGrid} from "animate-css-grid";
-import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
 import {Store} from "@ngrx/store";
-import {AppState, maxColsSelector, notesSelector, posSelector, widthChanged} from "../../../state/notes.state";
+import {AppState, notesAnimation, notesSelector} from "../../../state/notes.state";
 import {ResizeService} from "../../../shared/services/resize.service";
-import {GridService} from "./services/grid.service";
+import {GridService, Layout} from "./services/grid.service";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
+import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
 
 
 // appear animation not working
@@ -28,21 +26,19 @@ import {NoteListItemComponent} from "./components/note-list-item/note-list-item.
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ResizeService, GridService],
 })
-export class NotesListComponent implements OnInit {
+export class NotesListComponent implements OnInit, AfterViewInit {
   public readonly noteStates = NoteStates;
-  /*@ViewChild("grid", {static: true}) public gridRef!: ElementRef;
-  public loaded = false;
-  public notes: Note[] = [];
-  public pos = 0;
-  public cols = 1;*/
 
   @ViewChildren("note") public notes?: QueryList<NoteListItemComponent>;
 
   public notes$ = this.store.select(notesSelector).pipe(
-    tap(() => setTimeout(() => {
+    tap(notes => setTimeout(() => {
+      console.log("notes change");
       const heights = this.notes?.toArray().map(note => note.elem.clientHeight);
-      //this.gridService.relayout(heights || []);
-      this.layoutAnimation(this.gridService.layout);
+      this.gridService.relayout(heights || []);
+      if (notes?.length) {
+        this.layoutAnimation(this.gridService.layout, notes);
+      }
     })),
   );
 
@@ -54,62 +50,96 @@ export class NotesListComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    setTimeout(() => {
-      this.gridService.appendLayout([100, 20, 30, 40, 50]);
-    }, 14000);
-    // first time layout calculating goes without animation and without debounce (after view init)
-    this.resize$.observe(this.ref.nativeElement)
-      .pipe(debounceTime(250))
-      .subscribe(width => {
-        this.gridService.gridChanged(width);
-        // const heights = this.notes?.toArray().map(note => note.elem.getBoundingClientRect().height);
-        // const layout = this.gridService.relayout(heights || []);
-        // console.log(layout);
-        this.layoutAnimation(this.gridService.layout)
-      });
-
-    // this.gridService.gridChanged()
-    /*const animate = wrapGrid(this.gridRef.nativeElement, {
-      duration: 250,
-      stagger: 5,
-    }).forceGridAnimation;*/
-
-    /*rxsize(this.ref.nativeElement)
-      // tweak //remove for some interesting real-time effects
-      .pipe(debounceTime(250))
-      .subscribe(([val]) => {
-        this.store.dispatch(widthChanged({width: val.contentRect.width}));
-      });
-
-    this.store.select(maxColsSelector).subscribe(val => {
-      this.cols = val;
-      this.cdr.detectChanges();
+    const gridSize$ = this.resize$.observe(this.ref.nativeElement);
+    gridSize$.pipe(take(1))
+      .subscribe(width => this.gridService.gridChanged(width));
+    gridSize$.pipe(
+      tap(() => console.log("!")),
+      debounceTime(100),
+      delay(50)
+    ).subscribe(width => {
+      this.gridService.gridChanged(width)
+      // const heights = this.notes?.toArray().map(note => note.elem.getBoundingClientRect().height);
+      // const layout = this.gridService.relayout(heights || []);
+      // console.log(layout);
+      this.layoutAnimation(this.gridService.layout, []);
     });
-
-    this.store.select(posSelector).subscribe(val => {
-      if (this.pos && !this.loaded) {
-        this.loaded = true;
-      }
-      this.pos = val;
-      this.cdr.detectChanges();
-    });
-
-    combineLatest([
-      this.store.select(maxColsSelector),
-      this.store.select(notesSelector).pipe(tap(val => this.notes = val))
-    ]).subscribe(() => {
-      this.cdr.detectChanges();
-      // animate();
-    });*/
   }
 
-  // only animation on visible elements
-  public layoutAnimation(layout: [number, number][]): void {
-    this.notes?.toArray().map(note => note.elem).forEach((elem: HTMLElement, i) => {
-      elem.style.transitionDelay = `${i * 5}ms`;
-      elem.style.transform = `translate(${layout[i][0]}px, ${layout[i][1]}px)`;
+  public ngAfterViewInit() {
+    this.notes?.changes.subscribe(val => {
+      console.log("changes");
+      console.log(val);
     });
-    this.ref.nativeElement.style.transform = `translate(${this.gridService.pos}px, 0)`;
+  }
+
+  // maybe effect? for server loading??
+
+  // only animation on visible elements
+  public layoutAnimation(layout: Layout, notes: Note[]): void {
+    console.log("anim");
+    console.log(notes.length);
+    console.log(layout);
+    const len = this.notes?.length || 0;
+    const ids: number[] = [];
+    for (let i = 0; i < len; i++) {
+      const note = this.notes!.get(i);
+      //if (this.notes?.get(i)?.loadingAnimation) {
+      // anothe animation for when we manually add a note
+      if (notes[i]?.loadedAnimation) {
+        ids.push(i);
+        console.log("ok");
+        // this.notes!.get(i)!.loadingAnimation = false;
+        // web animation i guess here and then callback
+        const anim = this.notes!.get(i)!.elem.animate([
+          {
+            opacity: 0,
+            transform: `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1] + 25}px)`,
+          },
+          {
+            opacity: 1,
+            transform: `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`,
+          }
+        ], {
+          duration: 250,
+          delay: i * 15,
+          fill: "backwards",
+        });
+          anim.onfinish = () => {
+            // this.notes!.get(i)!.elem.rem
+            if (i + 1 === len) {
+              this.store.dispatch(notesAnimation({ids}));
+            }
+            // this.notes!.get(i)!.elem.style.opacity = "1";
+            this.notes!.get(i)!.elem.style.transition = "transform 300ms ease-out";
+            this.notes!.get(i)!.elem.style.transitionDelay = `${i * 5}ms`;
+          }
+
+        // in callback set the transition prop in css
+        // after that need to get rid of the serverLoading prop
+
+        /*this.notes!.get(i)!.elem.style.transitionDelay = `0`;
+        this.notes!.get(i)!.elem.style.opacity = "0";
+        this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1] + 15}px)`;
+        this.cdr.detectChanges();
+        // try
+        this.notes!.get(i)!.elem.style.transition = "opacity 400ms ease-out, transform 0ms ease-out";
+        this.notes!.get(i)!.elem.style.opacity = "1";
+        this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;*/
+      } else {
+
+        //console.log("not ok");
+        //console.log(notes[i]);
+        //this.notes!.get(i)!.elem.style.transition = "transform 100ms ease-out";
+        //this.notes!.get(i)!.elem.style.transitionDelay = `${i * 5}ms`;
+        console.log(i);
+        // this opacity should be set in anoyher place
+        // or try to play with opacity: 1 in css and then just set the opacity to 0 in the animation
+        this.notes!.get(i)!.elem.style.opacity = "1"; // try with this in comment: should move but the create note should not be created
+        this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
+      }
+      // this.notes!.get(i)!.elem.style.opacity = "1";
+    }
   }
 
   public id(index: number, el: Note): number {

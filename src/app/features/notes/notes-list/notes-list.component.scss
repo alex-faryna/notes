@@ -1,45 +1,14 @@
-/*:host {
-  height: 100%;
-  width: 100%;
-  display: block;
-  position: relative;
-  // padding-top: 30px;
-
-  .grid {
-    will-change: transform;
-    transform: translateZ(0) translateX(0);
-    position: absolute;
-    height: 100%;
-    display: grid;
-    grid-gap: 0;
-    grid-auto-rows: 1px;
-    padding: 10px 5px;
-
-    &.loaded {
-      transition: transform 0.35s ease-out;
-    }
-
-    > * {
-      transform: translateZ(0);
-    }
-  }
-}
-*/
-
 :host {
   width: 100%;
   position: relative;
-  // transform: translateZ(0);
-  will-change: transform;
-  transform: translate(0, 0);
-  transition: transform 300ms ease-out 50ms;
 
   .note {
-    // maybe will change - creates new layer
     position: absolute;
-    // backface-visibility: hidden;
-    // will-change: transform;
+    will-change: transform;
     transform: translate(0, 0);
-    transition: transform 350ms ease-out;
+    opacity: 0; // keep so it does not flicker
+    // transition: opacity 100ms ease-out; //, transform 250ms ease-out;
+    transition: transform 250ms ease-out;
+    display: block;
   }
 }

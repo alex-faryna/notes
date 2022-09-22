@@ -1,7 +1,8 @@
 export enum NoteStates {
   VIEW,
   CREATE,
-  EDIT
+  EDIT,
+  LOADED,
 }
 
 export interface Note {
@@ -17,6 +18,7 @@ export interface Note {
 
   // maybe divide into data transfer object and view objects
   state?: NoteStates;
+  loadedAnimation?: boolean;
 }
 
 export interface NotesState {

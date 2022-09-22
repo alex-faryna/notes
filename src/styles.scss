@@ -15,3 +15,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   aspect-ratio: 1;
 }
 
+div, h1, p, li, img {
+  -moz-transition: width 1s ease-in-out, left 1.5s ease-in-out;
+  -webkit-transition: width 1s ease-in-out, left 1.5s ease-in-out;
+  -moz-transition: width 1s ease-in-out, left 1.5s ease-in-out;
+  -o-transition: width 1s ease-in-out, left 1.5s ease-in-out;
+  transition: width 1s ease-in-out, left 1.5s ease-in-out;
+}

@@ -5,6 +5,7 @@ import {Actions, createEffect, ofType} from "@ngrx/effects";
 import {delay, NEVER, of, tap} from "rxjs";
 import {catchError, map, mergeMap} from 'rxjs/operators';
 import {NotesService} from "../shared/services/notes.service";
+import {immerOn} from "ngrx-immer/store";
 
 export const COLUMN_WIDTH = 250;
 export const GRID_PADDING = 10;
@@ -23,7 +24,7 @@ export const deleteNote = createAction("Delete note by id", props<{ id: number }
 export const widthChanged = createAction("Width changed", props<{ width: number }>());
 export const loadNotes = createAction("Load notes", props<{ from: number, count: number }>());
 export const loadSuccess = createAction("Load success", props<{ notes: Note[], loaded: number }>());
-
+export const notesAnimation = createAction("Notes loaded animation done", props<{ ids: number[]}>());
 // lock states when doing animations, so they don't interfere with each other
 
 export const selectNotesState = (state: AppState) => state.notes;
@@ -65,7 +66,7 @@ export const notesReducer = createReducer(
   }),
   on(addNote, (state, {color}) => {
     const note = {
-      id: state.notes.length, // 0 or -1 which later changes to id from server and that's it
+      id: 1000 + state.notes.length, // 0 or -1 which later changes to id from server and that's it
       title: "New title " + state.notes.length,
       content: "New content",
       state: color === "!!!" ? NoteStates.VIEW : NoteStates.EDIT,
@@ -94,6 +95,15 @@ export const notesReducer = createReducer(
       loaded: val.loaded,
       notes: [...state.notes, ...val.notes],
     });
+  }),
+  immerOn(notesAnimation, (state, {ids}) => {
+    console.log(state);
+    console.log(ids);
+    if (state.notes.length) {
+      for (const id of ids) {
+        state.notes[id].loadedAnimation = false;
+      }
+    }
   })
 );
 
@@ -118,7 +128,7 @@ export class NotesEffects {
         tap(console.log),
         tap(() => console.log("effect something")),
         // delay(1100),
-        map(notes => loadSuccess({notes, loaded: 1})),
+        map((notes: Note[]) => loadSuccess({notes: notes.map(note => ({...note, loadedAnimation: true})), loaded: 1})), // HERE
         catchError(() => NEVER) // just show something or smth alert or similar
       ))
     )
