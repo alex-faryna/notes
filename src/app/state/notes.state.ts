@@ -6,13 +6,14 @@ import {NEVER, of, tap} from "rxjs";
 import {catchError, map, mergeMap} from 'rxjs/operators';
 import {NotesService} from "../shared/services/notes.service";
 import {immerOn} from "ngrx-immer/store";
+import {ColorBubble} from "../shared/models/color.model";
 
 
 export interface AppState {
   notes: NotesState;
 }
 
-export const addNote = createAction("Create new empty note", props<{ color: string }>());
+export const addNote = createAction("Create new empty note", props<{ bubble: ColorBubble }>());
 export const addNoteAnimation = createAction("Created note animation done", props<{ id: number }>());
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
 export const loadNotes = createAction("Load notes", props<{ from: number, count: number }>());
@@ -48,13 +49,14 @@ export const notesReducer = createReducer(
       notes: [note, ...state.notes]
     };
   }),*/
-  immerOn(addNote, (state, {color}) => {
+  immerOn(addNote, (state, {bubble}) => {
     state.notes.unshift({
       id: 1000 + state.notes.length, // 0 or -1 which later changes to id from server and that's it
       title: "New title " + state.notes.length,
       content: "New content",
       state: NoteStates.CREATING,
-      color
+      color: bubble.color.color,
+      createEvent: bubble.event,
     });
   }),
   on(deleteNote, (state, {id}) => ({

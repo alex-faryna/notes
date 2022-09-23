@@ -24,19 +24,19 @@ export class AppComponent {
     this.store.dispatch(loadNotes({from: 0, count: 10}));
   }
 
-  public addNote(val: ColorBubble): void {
+  public addNote(bubble: ColorBubble): void {
     // change to store mechanism so we don't explicitly wait
 
     for(let i = 0;i < 1;i++) {
-      this.store.dispatch(addNote({color: val.color.color}));
+      this.store.dispatch(addNote({bubble}));
     }
 
-    const target = (val.event.target as HTMLElement).getBoundingClientRect();
+    const target = (bubble.event.target as HTMLElement).getBoundingClientRect();
     this.from = {
       x: target.left,
       y: target.top,
     }
-    this.selectedBubble = val;
+    this.selectedBubble = bubble;
 
 
     /*const target = (val.event.target as HTMLElement).getBoundingClientRect();

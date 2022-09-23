@@ -1,3 +1,5 @@
+import {ColorBubble} from "./color.model";
+
 export enum NoteStates {
   VIEW,
   LOADING,
@@ -18,6 +20,7 @@ export interface Note {
 
   state?: NoteStates;
   loadingLast?: boolean;
+  createEvent?: Event;
 }
 
 export interface NotesState {

@@ -6,8 +6,7 @@
     position: absolute;
     will-change: transform;
     opacity: 0;
-    transition: transform 250ms ease-out;
-    transform-origin: bottom right;
+    // transition: transform 350ms ease-in-out;
     display: block;
   }
 }

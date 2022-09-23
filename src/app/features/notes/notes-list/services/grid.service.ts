@@ -12,7 +12,9 @@ type ColumnsHeight = number[];
 
 // if we see performance drop make with interval heights and steps
 // for now: just relayout everything when notes change (load or action)
-@Injectable()
+@Injectable({
+  providedIn: "root"
+})
 export class GridService {
   public pos = 0;
 
@@ -32,7 +34,7 @@ export class GridService {
   public relayout(notes: QueryList<NoteListItemComponent>): void {
     const len = notes.length;
     for (let i = 0;i < 10;i++) {
-      this.columnHeights[i] = [...Array(i + 1)].map(() => 0);
+      this.columnHeights[i] = [...Array(i + 1)].map(() => 100);
       const res: Layout = [];
       const colHeights = this.columnHeights[i];
       for (let n = 0;n < len;n++) {
