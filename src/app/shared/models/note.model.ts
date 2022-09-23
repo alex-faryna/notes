@@ -1,8 +1,9 @@
 export enum NoteStates {
   VIEW,
-  CREATE,
+  LOADING,
+  CREATING,
   EDIT,
-  LOADED,
+  DELETING
 }
 
 export interface Note {
@@ -10,19 +11,15 @@ export interface Note {
   title: string;
   content: string;
 
+  color?: string;
   // remove
   test?: string;
   test2?: string;
 
-  color?: string;
-
-  // maybe divide into data transfer object and view objects
   state?: NoteStates;
-  loadedAnimation?: boolean;
+  loadingLast?: boolean;
 }
 
 export interface NotesState {
   notes: Note[];
-  width: number;
-  loaded: number;
 }

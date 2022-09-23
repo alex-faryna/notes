@@ -1,21 +1,19 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef, HostBinding,
+  ElementRef,
   OnInit,
   QueryList,
   ViewChildren
 } from '@angular/core';
-import {asap, debounceTime, delay, filter, take, tap} from "rxjs";
+import {debounceTime, delay, filter, take, tap} from "rxjs";
 import {Note, NoteStates} from "../../../shared/models/note.model";
 import {Store} from "@ngrx/store";
-import {AppState, notesAnimation, notesSelector} from "../../../state/notes.state";
+import {addNoteAnimation, AppState, loadNotesAnimation, notesSelector} from "../../../state/notes.state";
 import {ResizeService} from "../../../shared/services/resize.service";
-import {GridService, Layout} from "./services/grid.service";
+import {GridService, Position} from "./services/grid.service";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
-import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
 
 @Component({
   selector: 'app-notes-list',
@@ -30,11 +28,11 @@ export class NotesListComponent implements OnInit {
   @ViewChildren("note") public notes!: QueryList<NoteListItemComponent>;
 
   public notes$ = this.store.select(notesSelector).pipe(
-    filter(notes => notes.length > 0),
+    filter(notes => notes?.length > 0),
     tap(notes => setTimeout(() => {
       console.log("notes change");
       this.gridService.relayout(this.notes);
-      this.layoutAnimation(this.gridService.layout, notes);
+      this.layoutAnimation(notes);
     })),
   );
 
@@ -54,75 +52,86 @@ export class NotesListComponent implements OnInit {
       delay(50)
     ).subscribe(width => {
       this.gridService.gridChanged(width)
-      // const heights = this.notes?.toArray().map(note => note.elem.getBoundingClientRect().height);
-      // const layout = this.gridService.relayout(heights || []);
-      // console.log(layout);
-      this.layoutAnimation(this.gridService.layout, []);
+      this.layoutAnimation();
     });
   }
 
-  // maybe effect? for server loading??
-  // only animation on visible elements
-  public layoutAnimation(layout: Layout, notes: Note[]): void {
-    const len = this.notes?.length || 0;
-    const ids: number[] = [];
+  public layoutAnimation(notes: Note[] = []): void {
+    const layout = this.gridService.layout;
+    console.log(layout);
+    const len = this.notes.length;
+    const loadedIdx: number[] = [];
     for (let i = 0; i < len; i++) {
-      const note = this.notes!.get(i);
-      //if (this.notes?.get(i)?.loadingAnimation) {
-      // anothe animation for when we manually add a note
-      if (notes[i]?.loadedAnimation) {
-        ids.push(i);
-        console.log("ok");
-        // this.notes!.get(i)!.loadingAnimation = false;
-        // web animation i guess here and then callback
-        const anim = this.notes!.get(i)!.elem.animate([
-          {
-            opacity: 0,
-            transform: `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1] + 25}px)`,
-          },
-          {
-            opacity: 1,
-            transform: `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`,
-          }
-        ], {
+      const noteElem = this.notes.get(i)!.elem;
+      const note = notes[i];
+      if (note?.state === NoteStates.LOADING) {
+        loadedIdx.push(i);
+        const anim = noteElem.animate(this.getLoadAnimation(layout[i]), {
           duration: 250,
           delay: i * 15,
-          fill: "backwards",
         });
-          anim.onfinish = () => {
-            if (i + 1 === len) {
-              this.store.dispatch(notesAnimation({ids}));
-            }
-            // this.notes!.get(i)!.elem.style.opacity = "1";
-            this.notes!.get(i)!.elem.style.transitionDelay = `${i * 5}ms`;
+        anim.onfinish = () => {
+          this.noteStylesAfterAnimation(noteElem, i * 5);
+          if (note?.loadingLast) {
+            this.store.dispatch(loadNotesAnimation({ids: loadedIdx}));
           }
-
-        // in callback set the transition prop in css
-        // after that need to get rid of the serverLoading prop
-
-        /*this.notes!.get(i)!.elem.style.transitionDelay = `0`;
-        this.notes!.get(i)!.elem.style.opacity = "0";
-        this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1] + 15}px)`;
-        this.cdr.detectChanges();
-        // try
-        this.notes!.get(i)!.elem.style.transition = "opacity 400ms ease-out, transform 0ms ease-out";
-        this.notes!.get(i)!.elem.style.opacity = "1";
-        this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;*/
+        }
+      } else if (note?.state === NoteStates.CREATING) {
+        const anim = noteElem.animate(this.getCreateAnimation(layout[i]), {duration: 2250});
+        anim.commitStyles();
+        anim.onfinish = () => {
+          this.store.dispatch(addNoteAnimation({id: i}));
+          this.noteStylesAfterAnimation(noteElem);
+        }
       } else {
-        //console.log("not ok");
-        //console.log(notes[i]);
-        //this.notes!.get(i)!.elem.style.transition = "transform 100ms ease-out";
-        //this.notes!.get(i)!.elem.style.transitionDelay = `${i * 5}ms`;
-        // this opacity should be set in anoyher place
-        // or try to play with opacity: 1 in css and then just set the opacity to 0 in the animation
-        this.notes!.get(i)!.elem.style.opacity = "1"; // try with this in comment: should move but the create note should not be created
-        this.notes!.get(i)!.elem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
+        // no need to animate all of them, only a portion, others go directly
+        noteElem.style.transform = this.getNotePos(layout[i]);
       }
-      // this.notes!.get(i)!.elem.style.opacity = "1";
     }
   }
 
   public id(index: number, el: Note): number {
     return el.id;
+  }
+
+  // need add item aniamtion too
+  // delete maybe too
+
+  private getLoadAnimation(position: Position): Keyframe[] {
+    return [
+      {
+        opacity: 0,
+        transform: this.getNotePos(position, 25),
+      },
+      {
+        opacity: 1,
+        transform: this.getNotePos(position),
+      }
+    ];
+  }
+
+  private getCreateAnimation(position: Position): Keyframe[] {
+    return [
+      {
+        transform: `${this.getNotePos(position)}`,
+        opacity: 0.1,
+        scale: 0.1,
+      },
+      {
+        transform: `${this.getNotePos(position)}`,
+        opacity: 1,
+        scale: 1,
+      }
+    ];
+  }
+
+  private getNotePos(position: Position, offset = 0): string {
+    return `translate(${position[0] + this.gridService.pos}px, ${position[1] + offset}px)`
+  }
+
+  // run this after creating manually a note too
+  private noteStylesAfterAnimation(note: HTMLElement, delay = 0): void {
+    note.style.opacity = "1";
+    note.style.transitionDelay = `${delay}ms`;
   }
 }

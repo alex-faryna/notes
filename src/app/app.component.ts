@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {ColorBubble} from "./shared/models/color.model";
 import {Store} from "@ngrx/store";
-import {addNote, AppState, loadNotes, maxColsSelector, posSelector} from "./state/notes.state";
+import {addNote, AppState, loadNotes} from "./state/notes.state";
 import {map} from "rxjs/operators";
 import {GridService} from "./features/notes/notes-list/services/grid.service";
 import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
@@ -18,7 +18,7 @@ export class AppComponent {
   public from!: { x: number, y: number };
   public to!: { x: number, y: number };
 
-  public to$ = this.store.select(posSelector).pipe(map(pos => ({x: pos + 72, y: 10})));
+  // public to$ = this.store.select(posSelector).pipe(map(pos => ({x: pos + 72, y: 10})));
 
   constructor(private store: Store<AppState>) {
     this.store.dispatch(loadNotes({from: 0, count: 10}));

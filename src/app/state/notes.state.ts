@@ -2,69 +2,34 @@ import {createAction, createReducer, createSelector, on, props} from "@ngrx/stor
 import {Note, NotesState, NoteStates} from "../shared/models/note.model";
 import {Injectable} from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
-import {delay, NEVER, of, tap} from "rxjs";
+import {NEVER, of, tap} from "rxjs";
 import {catchError, map, mergeMap} from 'rxjs/operators';
 import {NotesService} from "../shared/services/notes.service";
 import {immerOn} from "ngrx-immer/store";
 
-export const COLUMN_WIDTH = 250;
-export const GRID_PADDING = 10;
-
-export interface GridParams {
-  cols: number;
-  pos: number;
-}
 
 export interface AppState {
   notes: NotesState;
 }
 
 export const addNote = createAction("Create new empty note", props<{ color: string }>());
+export const addNoteAnimation = createAction("Created note animation done", props<{ id: number }>());
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
-export const widthChanged = createAction("Width changed", props<{ width: number }>());
 export const loadNotes = createAction("Load notes", props<{ from: number, count: number }>());
-export const loadSuccess = createAction("Load success", props<{ notes: Note[], loaded: number }>());
-export const notesAnimation = createAction("Notes loaded animation done", props<{ ids: number[]}>());
-// lock states when doing animations, so they don't interfere with each other
+export const loadSuccess = createAction("Load success", props<{ notes: Note[] }>());
+export const loadNotesAnimation = createAction("Notes loaded animation done", props<{ ids: number[] }>());
+// lock states when doing animations or actions, so they don't interfere with each other
 
 export const selectNotesState = (state: AppState) => state.notes;
-export const notesSelector = createSelector(
-  selectNotesState,
-  state => state.notes,
-);
-export const notesLengthSelector = createSelector(
-  notesSelector,
-  notes => notes.length || 0,
-)
-export const widthSelector = createSelector(
-  selectNotesState,
-  state => state.width
-);
-export const maxColsSelector = createSelector(
-  widthSelector,
-  width => Math.floor(width / COLUMN_WIDTH)
-);
-
-export const posSelector = createSelector(
-  widthSelector,
-  maxColsSelector,
-  (width, cols) =>
-    Math.max(Math.floor((width - (GRID_PADDING + cols * COLUMN_WIDTH)) / 2), 0)
-)
+export const notesSelector = createSelector(selectNotesState, state => state.notes);
 
 const initialNotesState: NotesState = {
   notes: [],
-  width: 0,
-  loaded: 0,
 }
 
 export const notesReducer = createReducer(
   initialNotesState,
-  on(widthChanged, (state, {width}) => {
-    // console.log(state);
-    return {...state, width};
-  }),
-  on(addNote, (state, {color}) => {
+  /*on(addNote, (state, {color}) => {
     const note = {
       id: 1000 + state.notes.length, // 0 or -1 which later changes to id from server and that's it
       title: "New title " + state.notes.length,
@@ -82,6 +47,15 @@ export const notesReducer = createReducer(
       ...state,
       notes: [note, ...state.notes]
     };
+  }),*/
+  immerOn(addNote, (state, {color}) => {
+    state.notes.unshift({
+      id: 1000 + state.notes.length, // 0 or -1 which later changes to id from server and that's it
+      title: "New title " + state.notes.length,
+      content: "New content",
+      state: NoteStates.CREATING,
+      color
+    });
   }),
   on(deleteNote, (state, {id}) => ({
     ...state,
@@ -92,16 +66,17 @@ export const notesReducer = createReducer(
 
     return ({
       ...state,
-      loaded: val.loaded,
       notes: [...state.notes, ...val.notes],
     });
   }),
-  immerOn(notesAnimation, (state, {ids}) => {
-    console.log(state);
-    console.log(ids);
+  immerOn(addNoteAnimation, (state, {id}) => {
+    state.notes[id].state = NoteStates.VIEW;
+  }),
+  immerOn(loadNotesAnimation, (state, {ids}) => {
     if (state.notes.length) {
       for (const id of ids) {
-        state.notes[id].loadedAnimation = false;
+        state.notes[id].state = NoteStates.VIEW;
+        state.notes[id].loadingLast = false;
       }
     }
   })
@@ -125,10 +100,17 @@ export class NotesEffects {
   loadNotes = createEffect(() => this.actions$.pipe(
       ofType(loadNotes),
       mergeMap(() => this.notesService.getAllNotes().pipe(
-        tap(console.log),
-        tap(() => console.log("effect something")),
-        // delay(1100),
-        map((notes: Note[]) => loadSuccess({notes: notes.map(note => ({...note, loadedAnimation: true})), loaded: 1})), // HERE
+        map((notes: Note[]) => notes.map(note => ({...note, state: NoteStates.LOADING}))),
+        map((notes: Note[]) => {
+          const last = notes.pop();
+          return [
+            ...notes,
+            {
+              ...last,
+              loadingLast: true,
+            }] as Note[]
+        }),
+        map(notes => loadSuccess({notes})),
         catchError(() => NEVER) // just show something or smth alert or similar
       ))
     )
@@ -148,7 +130,6 @@ export class NotesEffects {
   // send request to server, if ok then success add note event
   // if not ok then error add note event
 
-
   addNote = createEffect(() => this.actions$.pipe(
       ofType(addNote),
       mergeMap(val => of(val)),
@@ -159,6 +140,5 @@ export class NotesEffects {
   constructor(
     private actions$: Actions,
     private notesService: NotesService,
-  ) {
-  }
+  ) {}
 }
