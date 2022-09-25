@@ -96,15 +96,11 @@ export class NotesListComponent implements OnInit {
           }
         }
       } else if (note?.state === NoteStates.CREATING) {
-        const duration = 250 * 1;
-        const delay = 200 * 1;
+        const duration = 250;
+        const delay = 200;
         noteElem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
-        // can play with the transform origin + duration as in fast speed there are different outcomes
-        // noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos + 250}px ${layout[i][1] + 80}px`;
-        // noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos}px ${layout[i][1]}px`; // tr origin and pos too check
-
-        noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration, delay});
-        noteElem.animate(this.createAnimation, {duration, delay}).onfinish = () => {
+        noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration: 250, delay: 200});
+        noteElem.animate(this.createAnimation, {duration: 250, delay: 200}).onfinish = () => {
           this.store.dispatch(addNoteAnimation({id: i}));
           this.noteStylesAfterAnimation(noteElem);
         };

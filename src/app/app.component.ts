@@ -20,59 +20,65 @@ export class AppComponent {
 
   public addNote(bubble: ColorBubble): void {
     this.store.dispatch(addNote({bubble}));
-
+    const color = bubble.color.color;
     const target = (bubble.event.target as HTMLElement).getBoundingClientRect();
-
     setTimeout(() => {
       const bubbleContainer = this.bubble!.nativeElement;
       const bubbleElement = this.bubble!.nativeElement.firstElementChild as HTMLElement;
-      const duration = 400 * 1;
-      bubbleContainer.animate([
-        {
-          transform: `translateY(${target.top}px)`,
-          easing: "ease-out",
-        },
-        {
-          transform: `translateY(${25 + (this.gridService.cols > 1 ? 0 : 0 /* 0 */)}px)`,
-          offset: 0.35,
-          easing: "ease-in",
-        },
-        {
-          transform: `translateY(${110}px)`,
-        }
-      ], {duration});
-
-      bubbleElement.style.background = bubble.color.color;
-      console.log(this.gridService.cols);
-      bubbleElement.animate([
-        {
-          opacity: 1,
-          borderRadius: "50%",
-          transform: `translateX(${target.left}px)`,
-          easing: "ease-in-out",
-        },
-        {
-          borderRadius: "35%",
-          offset: 0.65,
-          width: "50px",
-          aspectRatio: 1.3,
-        },
-        {
-          borderRadius: "6px",
-          offset: 0.75,
-          width: "75px",
-          aspectRatio: 1.85,
-          opacity: 1,
-        },
-        {
-          borderColor: bubble.color.color,
-          borderRadius: "4px",
-          width: "200px",
-          aspectRatio: 2.5,
-          transform: `translateX(${this.gridService.pos + 72 + 20 /* +(this.gridService.cols > 1 ? 35 : 125) */ }px)`,
-          opacity: 0.35,
-        }
-      ], {duration});
+      bubbleElement.style.background = color;
+      bubbleElement.animate(this.getBubbleAniamtion(target.left, color), {duration: 400});
+      bubbleContainer.animate(this.getBubbleContainerAnimation(target.top), {duration: 400});
     });
   }
+
+  private getBubbleContainerAnimation(top: number): Keyframe[] {
+    return [
+      {
+        transform: `translateY(${top}px)`,
+        easing: "ease-out",
+      },
+      {
+        transform: `translateY(25px)`,
+        offset: 0.35,
+        easing: "ease-in",
+      },
+      {
+        transform: `translateY(110px)`,
+      }
+    ];
+  }
+
+  private getBubbleAniamtion(left: number, color: string): Keyframe[] {
+    return [
+      {
+        opacity: 1,
+        borderRadius: "50%",
+        transform: `translateX(${left}px)`,
+        easing: "ease-in-out",
+      },
+      {
+        borderRadius: "35%",
+        offset: 0.65,
+        width: "50px",
+        aspectRatio: 1.3,
+      },
+      {
+        borderRadius: "6px",
+        offset: 0.75,
+        width: "75px",
+        aspectRatio: 2.5,
+        opacity: 1,
+      },
+      {
+        borderColor: color,
+        borderRadius: "4px",
+        width: "200px",
+        aspectRatio: 3.3,
+        transform: `translateX(${this.gridService.pos + 92 }px)`,
+        opacity: 0.35,
+      }
+    ];
+  }
+
+
 }
