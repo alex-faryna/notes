@@ -4,3 +4,23 @@
   display: flex;
   overflow-x: hidden;
 }
+
+.notes {
+  z-index: 10;
+}
+
+.bubble-container {
+  z-index: 5;
+  position: fixed;
+  transform: translate(0, 0);
+}
+
+.bubble {
+  opacity: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.25);
+  width: 20px;
+  aspect-ratio: 1;
+  transform: translate(0, 0);
+}

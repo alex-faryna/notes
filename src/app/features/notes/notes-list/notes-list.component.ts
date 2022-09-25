@@ -36,6 +36,26 @@ export class NotesListComponent implements OnInit {
     })),
   );
 
+  private readonly createAnimation = [
+    {
+      scale: 0.01,
+      opacity: 1,
+    },
+    {
+      opacity: 1,
+      scale: 1,
+    }
+  ];
+  private readonly childCreateAnimation = [
+    {
+      color: "rgba(0, 0, 0, 0.0)",
+    },
+    {
+      color: "rgba(0, 0, 0, 0.0)",
+      offset: 0.85,
+    },
+  ];
+
   constructor(private ref: ElementRef,
               private cdr: ChangeDetectorRef,
               private resize$: ResizeService,
@@ -66,43 +86,28 @@ export class NotesListComponent implements OnInit {
       const note = notes[i];
       if (note?.state === NoteStates.LOADING) {
         loadedIdx.push(i);
-        const anim = noteElem.animate(this.getLoadAnimation(layout[i]), {
+        noteElem.animate(this.getLoadAnimation(layout[i]), {
           duration: 250,
           delay: i * 15,
-        });
-        anim.onfinish = () => {
+        }).onfinish = () => {
           this.noteStylesAfterAnimation(noteElem, i * 5);
           if (note?.loadingLast) {
             this.store.dispatch(loadNotesAnimation({ids: loadedIdx}));
           }
         }
       } else if (note?.state === NoteStates.CREATING) {
-        const duration = 250 * 10;
-        console.log(`${layout[i][0]}px ${layout[i][1]}px`);
-        noteElem.style.transformOrigin = `${100}% ${100}%`;
-
-
-        // set background
-        // noteElem.style.color = 'red';
-        // what if you make the bubble here????saves a lot actually
-        noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos}px ${layout[i][1]}px`;
-        //noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos + 20}px ${layout[i][1] + 20}px`;
-        // noteElem.style.transformOrigin = `350px 180px`;
+        const duration = 250 * 1;
+        const delay = 200 * 1;
         noteElem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
-        const anim = noteElem.animate(this.getCreateAnimation(layout[i]), {duration});
-        anim.onfinish = () => {
+        // can play with the transform origin + duration as in fast speed there are different outcomes
+        // noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos + 250}px ${layout[i][1] + 80}px`;
+        // noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos}px ${layout[i][1]}px`; // tr origin and pos too check
+
+        noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration, delay});
+        noteElem.animate(this.createAnimation, {duration, delay}).onfinish = () => {
           this.store.dispatch(addNoteAnimation({id: i}));
           this.noteStylesAfterAnimation(noteElem);
         };
-        noteElem.firstElementChild!.firstElementChild!.animate([
-          {
-            color: "rgba(0, 0, 0, 0.0)",
-          },
-          {
-            color: "rgba(0, 0, 0, 0.0)",
-            offset: 0.85,
-          },
-        ], {duration});
       } else {
         // no need to animate all of them, only a portion, others go directly
         noteElem.style.transform = this.getNotePos(layout[i]);
@@ -130,54 +135,12 @@ export class NotesListComponent implements OnInit {
     ];
   }
 
-  private getCreateAnimation(position: Position): Keyframe[] {
-    return [
-      {
-        opacity: 1,
-        scale: 0.1,
-      },
-      {
-        opacity: 1,
-        scale: 1,
-      }
-    ];
-  }
-
   private getNotePos(position: Position, offset = 0): string {
     return `translate(${position[0] + this.gridService.pos}px, ${position[1] + offset}px)`
   }
 
-  // run this after creating manually a note too
   private noteStylesAfterAnimation(note: HTMLElement, delay = 0): void {
     note.style.opacity = "1";
     note.style.transitionDelay = `${delay}ms`;
   }
 }
-
-/*const duration = 250 * 10;
-        console.log(`${layout[i][0]}px ${layout[i][1]}px`);
-        noteElem.style.transformOrigin = `${100}% ${100}%`;
-
-
-        // set background
-        // noteElem.style.color = 'red';
-        // what if you make the bubble here????saves a lot actually
-        //noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos}px ${layout[i][1]}px`;
-        //noteElem.style.transformOrigin = `${layout[i][0] + this.gridService.pos + 20}px ${layout[i][1] + 20}px`;
-        // noteElem.style.transformOrigin = `350px 180px`;
-        noteElem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
-        const anim = noteElem.animate(this.getCreateAnimation(layout[i]), {duration});
-        anim.onfinish = () => {
-          this.store.dispatch(addNoteAnimation({id: i}));
-          this.noteStylesAfterAnimation(noteElem);
-        };*/
-
-// animate child (make it opacity etc) after 80% of animation is done
-/*noteElem.firstElementChild!.animate([
-          {
-            opacity: 0.01,
-          },
-          {
-            opacity: 1,
-          }
-        ], {duration: duration / 4, delay: duration / 4 * 3, fill: "both"});*/

@@ -18,7 +18,7 @@ type ColumnsHeight = number[];
 export class GridService {
   public pos = 0;
 
-  private cols = 1;
+  public cols = 1;
   private layouts: AllLayouts = [];
   private columnHeights: ColumnsHeight[] = [];
 

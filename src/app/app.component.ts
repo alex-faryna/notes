@@ -1,10 +1,8 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, ViewChild} from '@angular/core';
 import {ColorBubble} from "./shared/models/color.model";
 import {Store} from "@ngrx/store";
 import {addNote, AppState, loadNotes} from "./state/notes.state";
-import {map} from "rxjs/operators";
 import {GridService} from "./features/notes/notes-list/services/grid.service";
-import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
 
 @Component({
   selector: 'app-root',
@@ -14,53 +12,67 @@ import {animate, query, stagger, style, transition, trigger} from "@angular/anim
   providers: [GridService],
 })
 export class AppComponent {
-  public selectedBubble: ColorBubble | null = null;
-  public from!: { x: number, y: number };
-  public to!: { x: number, y: number };
+  @ViewChild("bubble") private bubble?: ElementRef<HTMLElement>;
 
-  // public to$ = this.store.select(posSelector).pipe(map(pos => ({x: pos + 72, y: 10})));
-
-  constructor(private store: Store<AppState>) {
+  constructor(private store: Store<AppState>, private gridService: GridService) {
     this.store.dispatch(loadNotes({from: 0, count: 10}));
   }
 
   public addNote(bubble: ColorBubble): void {
-    // change to store mechanism so we don't explicitly wait
-
-    for(let i = 0;i < 1;i++) {
-      this.store.dispatch(addNote({bubble}));
-    }
+    this.store.dispatch(addNote({bubble}));
 
     const target = (bubble.event.target as HTMLElement).getBoundingClientRect();
-    this.from = {
-      x: target.left,
-      y: target.top,
-    }
-    this.selectedBubble = bubble;
 
+    setTimeout(() => {
+      const bubbleContainer = this.bubble!.nativeElement;
+      const bubbleElement = this.bubble!.nativeElement.firstElementChild as HTMLElement;
+      const duration = 400 * 1;
+      bubbleContainer.animate([
+        {
+          transform: `translateY(${target.top}px)`,
+          easing: "ease-out",
+        },
+        {
+          transform: `translateY(${25 + (this.gridService.cols > 1 ? 0 : 0 /* 0 */)}px)`,
+          offset: 0.35,
+          easing: "ease-in",
+        },
+        {
+          transform: `translateY(${110}px)`,
+        }
+      ], {duration});
 
-    /*const target = (val.event.target as HTMLElement).getBoundingClientRect();
-    this.from = {
-      x: target.left,
-      y: target.top,
-    }*/
-    /*this.notes$.next([{
-      id: 10, // + this.notes$.value.length,
-      title: "New title",
-      content: "New content",
-      state: NoteStates.CREATE,
-    }, ...this.notes$.value]);*/
-    // this.notesService.valueLength(this.notes$.value.length); // remove when store
-
-
-    /*setTimeout(() => {
-      this.notes$.next([{
-        id: 10,
-        title: "New title",
-        content: "New content",
-        state: NoteStates.EDIT,
-        color: val.color.color,
-      }, ...this.notes$.value.slice(1)]);
-    }, 3000);*/
+      bubbleElement.style.background = bubble.color.color;
+      console.log(this.gridService.cols);
+      bubbleElement.animate([
+        {
+          opacity: 1,
+          borderRadius: "50%",
+          transform: `translateX(${target.left}px)`,
+          easing: "ease-in-out",
+        },
+        {
+          borderRadius: "35%",
+          offset: 0.65,
+          width: "50px",
+          aspectRatio: 1.3,
+        },
+        {
+          borderRadius: "6px",
+          offset: 0.75,
+          width: "75px",
+          aspectRatio: 1.85,
+          opacity: 1,
+        },
+        {
+          borderColor: bubble.color.color,
+          borderRadius: "4px",
+          width: "200px",
+          aspectRatio: 2.5,
+          transform: `translateX(${this.gridService.pos + 72 + 20 /* +(this.gridService.cols > 1 ? 35 : 125) */ }px)`,
+          opacity: 0.35,
+        }
+      ], {duration});
+    });
   }
 }
