@@ -22,7 +22,7 @@
     "@angular/router": "^14.0.0",
     "@ngrx/store": "^14.3.0",
     "@ngrx/effects": "^14.3.1",
-    "animate-css-grid": "^1.4.3",
+    "ngrx-immer": "^2.0.1",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"

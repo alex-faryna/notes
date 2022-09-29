@@ -21,9 +21,9 @@ export class SideMenuComponent {
   @ViewChildren("colorBubble") private bubbles!: QueryList<ElementRef>;
   public readonly colors = THEME_COLORS.reverse();
   public readonly animation = [
-    {top: "0", easing: "ease-out"},
+    {transform: "translateY(0)", easing: "ease-out"},
     ...THEME_COLORS.map((_, i) => ({
-      top: `${20 + (i + 1) * 36}px`,
+      transform: `translateY(${20 + (i + 1) * 36}px)`,
     })),
   ];
 

@@ -1,7 +1,11 @@
+import {ColorBubble} from "./color.model";
+
 export enum NoteStates {
   VIEW,
-  CREATE,
-  EDIT
+  LOADING,
+  CREATING,
+  EDIT,
+  DELETING
 }
 
 export interface Note {
@@ -9,18 +13,16 @@ export interface Note {
   title: string;
   content: string;
 
+  color?: string;
   // remove
   test?: string;
   test2?: string;
 
-  color?: string;
-
-  // maybe divide into data transfer object and view objects
   state?: NoteStates;
+  loadingLast?: boolean;
+  createEvent?: Event;
 }
 
 export interface NotesState {
   notes: Note[];
-  width: number;
-  loaded: number;
 }

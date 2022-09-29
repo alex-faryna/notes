@@ -1,72 +1,142 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {combineLatest, debounceTime, tap} from "rxjs";
-import {rxsize} from "../../../shared/utils/rxsizable.utils";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnInit,
+  QueryList,
+  ViewChildren
+} from '@angular/core';
+import {debounceTime, delay, filter, take, tap} from "rxjs";
 import {Note, NoteStates} from "../../../shared/models/note.model";
-import {wrapGrid} from "animate-css-grid";
-import {animate, query, stagger, style, transition, trigger} from "@angular/animations";
 import {Store} from "@ngrx/store";
-import {AppState, colsSelector, notesSelector, posSelector, widthChanged} from "../../../state/notes.state";
+import {addNoteAnimation, AppState, loadNotesAnimation, notesSelector} from "../../../state/notes.state";
+import {ResizeService} from "../../../shared/services/resize.service";
+import {GridService, Position} from "./services/grid.service";
+import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
 
 @Component({
   selector: 'app-notes-list',
   templateUrl: './notes-list.component.html',
   styleUrls: ['./notes-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('notesList', [
-      transition('* => *', [
-        query(':enter .note-view',
-          [
-            style({opacity: 0, paddingTop: '20px'}),
-            stagger('75ms', animate('150ms linear'))
-          ],
-          {optional: true}
-        ),
-      ])
-    ])
-  ]
+  providers: [ResizeService],
 })
 export class NotesListComponent implements OnInit {
   public readonly noteStates = NoteStates;
-  @ViewChild("grid", {static: true}) public gridRef!: ElementRef;
 
-  public notes: Note[] = [];
-  public pos = 0;
-  public cols = 1;
+  @ViewChildren("note") public notes!: QueryList<NoteListItemComponent>;
+
+  public notes$ = this.store.select(notesSelector).pipe(
+    filter(notes => notes?.length > 0),
+    tap(notes => setTimeout(() => {
+      console.log("notes change");
+      this.gridService.relayout(this.notes);
+      this.layoutAnimation(notes);
+    })),
+  );
+
+  private readonly createAnimation = [
+    {
+      scale: 0.01,
+      opacity: 1,
+    },
+    {
+      opacity: 1,
+      scale: 1,
+    }
+  ];
+  private readonly childCreateAnimation = [
+    {
+      color: "rgba(0, 0, 0, 0.0)",
+    },
+    {
+      color: "rgba(0, 0, 0, 0.0)",
+      offset: 0.85,
+    },
+  ];
 
   constructor(private ref: ElementRef,
               private cdr: ChangeDetectorRef,
+              private resize$: ResizeService,
+              private gridService: GridService,
               private store: Store<AppState>) {
   }
 
   public ngOnInit(): void {
-    const animate = wrapGrid(this.gridRef.nativeElement, {
-      duration: 250,
-      stagger: 5,
-    }).forceGridAnimation;
-
-    rxsize(this.ref.nativeElement)
-      // tweak //remove for some interesting real-time effects
-      .pipe(debounceTime(250))
-      .subscribe(([val]) => {
-        this.store.dispatch(widthChanged({width: val.contentRect.width}));
-      });
-
-    this.store.select(posSelector).subscribe(val => {
-      this.pos = val;
-      this.cdr.detectChanges();
+    const gridSize$ = this.resize$.observe(this.ref.nativeElement);
+    gridSize$.pipe(take(1))
+      .subscribe(width => this.gridService.gridChanged(width));
+    gridSize$.pipe(
+      debounceTime(100),
+      delay(50)
+    ).subscribe(width => {
+      this.gridService.gridChanged(width)
+      this.layoutAnimation();
     });
+  }
 
-    combineLatest([
-      this.store.select(colsSelector).pipe(tap(val => this.cols = val)),
-      this.store.select(notesSelector).pipe(tap(val => this.notes = val))
-    ]).subscribe(() => {
-      this.cdr.detectChanges();
-      animate();
-    });
+  public layoutAnimation(notes: Note[] = []): void {
+    const layout = this.gridService.layout;
+    console.log(layout);
+    const len = this.notes.length;
+    const loadedIdx: number[] = [];
+    for (let i = 0; i < len; i++) {
+      const noteElem = this.notes.get(i)!.elem;
+      const note = notes[i];
+      if (note?.state === NoteStates.LOADING) {
+        loadedIdx.push(i);
+        noteElem.animate(this.getLoadAnimation(layout[i]), {
+          duration: 250,
+          delay: i * 15,
+        }).onfinish = () => {
+          this.noteStylesAfterAnimation(noteElem, i * 5);
+          if (note?.loadingLast) {
+            this.store.dispatch(loadNotesAnimation({ids: loadedIdx}));
+          }
+        }
+      } else if (note?.state === NoteStates.CREATING) {
+        const duration = 250;
+        const delay = 200;
+        noteElem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
+        noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration: 250, delay: 200});
+        noteElem.animate(this.createAnimation, {duration: 250, delay: 200}).onfinish = () => {
+          this.store.dispatch(addNoteAnimation({id: i}));
+          this.noteStylesAfterAnimation(noteElem);
+        };
+      } else {
+        // no need to animate all of them, only a portion, others go directly
+        noteElem.style.transform = this.getNotePos(layout[i]);
+      }
+    }
   }
 
   public id(index: number, el: Note): number {
     return el.id;
+  }
+
+  // need add item aniamtion too
+  // delete maybe too
+
+  private getLoadAnimation(position: Position): Keyframe[] {
+    return [
+      {
+        opacity: 0,
+        transform: this.getNotePos(position, 25),
+      },
+      {
+        opacity: 1,
+        transform: this.getNotePos(position),
+      }
+    ];
+  }
+
+  private getNotePos(position: Position, offset = 0): string {
+    return `translate(${position[0] + this.gridService.pos}px, ${position[1] + offset}px)`
+  }
+
+  private noteStylesAfterAnimation(note: HTMLElement, delay = 0): void {
+    note.style.opacity = "1";
+    note.style.transitionDelay = `${delay}ms`;
   }
 }
