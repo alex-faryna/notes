@@ -1,8 +1,8 @@
-import {createAction, createReducer, createSelector, on, props} from "@ngrx/store";
+import {createAction, createReducer, createSelector, on, props, Store} from "@ngrx/store";
 import {Note, NotesState, NoteStates} from "../shared/models/note.model";
 import {Injectable} from "@angular/core";
-import {Actions, createEffect, ofType} from "@ngrx/effects";
-import {NEVER, of, tap} from "rxjs";
+import {Actions, concatLatestFrom, createEffect, ofType} from "@ngrx/effects";
+import {NEVER, of, tap, withLatestFrom} from "rxjs";
 import {catchError, map, mergeMap} from 'rxjs/operators';
 import {NotesService} from "../shared/services/notes.service";
 import {immerOn} from "ngrx-immer/store";
@@ -15,6 +15,9 @@ export interface AppState {
 
 export const addNote = createAction("Create new empty note", props<{ bubble: ColorBubble }>());
 export const addNoteAnimation = createAction("Created note animation done", props<{ id: number }>());
+
+export const addNoteUpdateId = createAction("Update id of created note", props<{id: number}>());
+
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
 export const loadNotes = createAction("Load notes", props<{ from: number, count: number }>());
 export const loadSuccess = createAction("Load success", props<{ notes: Note[] }>());
@@ -81,9 +84,14 @@ export const notesReducer = createReducer(
         state.notes[id].loadingLast = false;
       }
     }
+  }),
+  immerOn(addNoteUpdateId, (state, {id}) => {
+    state.notes[0].id = id;
   })
 );
 
+
+let i = 1000;
 // we have 2 notes and space for more, it loads in the second row instead of the first (guess we need the max columns or smth like this)
 
 // but then test if we add many items how it behaves there too
@@ -101,6 +109,8 @@ export const notesReducer = createReducer(
 export class NotesEffects {
   loadNotes = createEffect(() => this.actions$.pipe(
       ofType(loadNotes),
+      // concatLatestFrom(() => this.store.select(notesSelector)),
+      tap(console.log),
       mergeMap(() => this.notesService.getAllNotes().pipe(
         map((notes: Note[]) => notes.map(note => ({...note, state: NoteStates.LOADING}))),
         map((notes: Note[]) => {
@@ -134,13 +144,20 @@ export class NotesEffects {
 
   addNote = createEffect(() => this.actions$.pipe(
       ofType(addNote),
-      mergeMap(val => of(val)),
-      tap(() => console.log('custom effect')),
-    ), {dispatch: false}
+      tap(v => console.log(v)),
+      mergeMap(val => of(i)),
+      tap(() => {
+        console.log('custom effect');
+        i++;
+      }),
+      map(id => addNoteUpdateId({id})),
+      catchError(() => NEVER)
+    )
   );
 
   constructor(
     private actions$: Actions,
+    private store: Store<AppState>,
     private notesService: NotesService,
   ) {}
 }

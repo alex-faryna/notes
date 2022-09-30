@@ -13,4 +13,8 @@ export class NotesService {
   public getAllNotes(): Observable<Note[]> {
     return this.http.get<Note[]>("http://localhost:3000/notes/all");
   }
+
+  public loadNotes(lastId: number, count = 10): Observable<Note[]> {
+    return this.http.get<Note[]>(`http://localhost:3000/notes/from?=${lastId}&count=${count}`);
+  }
 }

@@ -7,10 +7,10 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
-import {debounceTime, delay, filter, take, tap} from "rxjs";
+import {debounceTime, delay, filter, Observable, of, take, tap} from "rxjs";
 import {Note, NoteStates} from "../../../shared/models/note.model";
 import {Store} from "@ngrx/store";
-import {addNoteAnimation, AppState, loadNotesAnimation, notesSelector} from "../../../state/notes.state";
+import {addNoteAnimation, AppState, loadNotes, loadNotesAnimation, notesSelector} from "../../../state/notes.state";
 import {ResizeService} from "../../../shared/services/resize.service";
 import {GridService, Position} from "./services/grid.service";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
@@ -23,18 +23,8 @@ import {NoteListItemComponent} from "./components/note-list-item/note-list-item.
   providers: [ResizeService],
 })
 export class NotesListComponent implements OnInit {
-  public readonly noteStates = NoteStates;
-
   @ViewChildren("note") public notes!: QueryList<NoteListItemComponent>;
-
-  public notes$ = this.store.select(notesSelector).pipe(
-    filter(notes => notes?.length > 0),
-    tap(notes => setTimeout(() => {
-      console.log("notes change");
-      this.gridService.relayout(this.notes);
-      this.layoutAnimation(notes);
-    })),
-  );
+  public notes$: Observable<Note[]> = of([]);
 
   private readonly createAnimation = [
     {
@@ -66,19 +56,22 @@ export class NotesListComponent implements OnInit {
   public ngOnInit(): void {
     const gridSize$ = this.resize$.observe(this.ref.nativeElement);
     gridSize$.pipe(take(1))
-      .subscribe(width => this.gridService.gridChanged(width));
+      .subscribe(width => {
+        this.gridService.gridChanged(width);
+        this.initNotes();
+        this.cdr.detectChanges();
+      });
     gridSize$.pipe(
       debounceTime(100),
       delay(50)
     ).subscribe(width => {
-      this.gridService.gridChanged(width)
+      this.gridService.gridChanged(width);
       this.layoutAnimation();
     });
   }
 
   public layoutAnimation(notes: Note[] = []): void {
     const layout = this.gridService.layout;
-    console.log(layout);
     const len = this.notes.length;
     const loadedIdx: number[] = [];
     for (let i = 0; i < len; i++) {
@@ -138,5 +131,15 @@ export class NotesListComponent implements OnInit {
   private noteStylesAfterAnimation(note: HTMLElement, delay = 0): void {
     note.style.opacity = "1";
     note.style.transitionDelay = `${delay}ms`;
+  }
+
+  private initNotes(): void {
+    this.notes$ = this.store.select(notesSelector).pipe(
+      filter(notes => notes?.length > 0),
+      tap(notes => setTimeout(() => {
+        this.gridService.relayout(this.notes);
+        this.layoutAnimation(notes);
+      })),
+    );
   }
 }
