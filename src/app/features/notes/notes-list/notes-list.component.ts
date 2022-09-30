@@ -79,6 +79,7 @@ export class NotesListComponent implements OnInit {
       const note = notes[i];
       if (note?.state === NoteStates.LOADING) {
         loadedIdx.push(i);
+        noteElem.style.transform = this.getNotePos(layout[i]);
         noteElem.animate(this.getLoadAnimation(layout[i]), {
           duration: 250,
           delay: i * 15,

@@ -8,6 +8,8 @@ import {
   ViewChildren
 } from '@angular/core';
 import {Color, ColorBubble, THEME_COLORS} from "../../shared/models/color.model";
+import {AppState, loadNotes} from "../../state/notes.state";
+import {Store} from "@ngrx/store";
 
 const BUBBLE_FRAME_TIME = 85;
 
@@ -30,6 +32,9 @@ export class SideMenuComponent {
   public showColors = false;
   @Output() private bubbleClick = new EventEmitter<ColorBubble>();
 
+  constructor(private store: Store<AppState>) {
+  }
+
   public animateBubbles(show = true): void {
     const easing = show ? "ease-out" : 'ease-in';
     const animation = this.animation.map(anim => ({...anim, easing}));
@@ -45,5 +50,10 @@ export class SideMenuComponent {
 
   public bubbleClicked(color: Color, event: MouseEvent): void {
     this.bubbleClick.emit({color, event});
+  }
+
+  public more(): void {
+    console.log("more");
+    this.store.dispatch(loadNotes({from: 0, count: 10}));
   }
 }
