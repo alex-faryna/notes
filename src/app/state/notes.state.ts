@@ -19,7 +19,7 @@ export const addNoteAnimation = createAction("Created note animation done", prop
 export const addNoteUpdateId = createAction("Update id of created note", props<{id: number}>());
 
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
-export const loadNotes = createAction("Load notes", props<{ from: number, count: number }>());
+export const loadNotes = createAction("Load notes", props<{ from: number | false, count: number }>());
 export const loadSuccess = createAction("Load success", props<{ notes: Note[] }>());
 export const loadNotesAnimation = createAction("Notes loaded animation done", props<{ ids: number[] }>());
 // lock states when doing animations or actions, so they don't interfere with each other
@@ -55,7 +55,7 @@ export const notesReducer = createReducer(
   immerOn(addNote, (state, {bubble}) => {
     state.notes.unshift({
       id: 1000 + state.notes.length, // 0 or -1 which later changes to id from server and that's it
-      title: "New title " + state.notes.length,
+      title: "New note",
       content: "New content",
       state: NoteStates.CREATING,
       color: bubble.color.color,
@@ -67,7 +67,7 @@ export const notesReducer = createReducer(
     notes: state.notes.filter(note => note.id !== id),
   })),
   on(loadSuccess, (state, val) => {
-    console.log(state);
+    // console.log(state);
 
     return ({
       ...state,
@@ -109,18 +109,26 @@ let i = 1000;
 export class NotesEffects {
   loadNotes = createEffect(() => this.actions$.pipe(
       ofType(loadNotes),
-      // concatLatestFrom(() => this.store.select(notesSelector)),
-      tap(console.log),
-      mergeMap(() => this.notesService.getAllNotes().pipe(
+      concatLatestFrom(() => this.store.select(notesSelector)),
+      tap(([_, notes]) => {
+        console.log("---");
+        console.log(notes);
+        const data = notes[notes.length - 1]?.id || false;
+        console.log(data);
+        console.log("---");
+      }),
+      map(([_, notes]) => notes[notes.length - 1]?.id || false),
+      tap(vv => {
+        console.log("---");
+        console.log(vv);
+        console.log("---");
+      }),
+      // i guess with count all and loaded count in state would be better or smth like that
+      mergeMap(last => this.notesService.loadNotes(last, 100).pipe(
         map((notes: Note[]) => notes.map(note => ({...note, state: NoteStates.LOADING}))),
         map((notes: Note[]) => {
-          const last = notes.pop();
-          return [
-            ...notes,
-            {
-              ...last,
-              loadingLast: true,
-            }] as Note[]
+          notes[notes.length - 1].loadingLast = true;
+          return notes;
         }),
         map(notes => loadSuccess({notes})),
         catchError(() => NEVER) // just show something or smth alert or similar
@@ -145,9 +153,10 @@ export class NotesEffects {
   addNote = createEffect(() => this.actions$.pipe(
       ofType(addNote),
       tap(v => console.log(v)),
-      mergeMap(val => of(i)),
-      tap(() => {
+      mergeMap(data => this.notesService.createNote(data.bubble.color.color)), // save to backend
+      tap(v => {
         console.log('custom effect');
+        console.log(v);
         i++;
       }),
       map(id => addNoteUpdateId({id})),

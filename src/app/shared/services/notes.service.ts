@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {Observable} from "rxjs";
+import {Observable, tap} from "rxjs";
 import {Note} from "../models/note.model";
+import {map} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,12 @@ export class NotesService {
     return this.http.get<Note[]>("http://localhost:3000/notes/all");
   }
 
-  public loadNotes(lastId: number, count = 10): Observable<Note[]> {
-    return this.http.get<Note[]>(`http://localhost:3000/notes/from?=${lastId}&count=${count}`);
+  public createNote(color: string): Observable<number> {
+    return this.http.put("http://localhost:3000/notes", {color}) as Observable<number>;
+  }
+
+  public loadNotes(lastId: number | false, count = 10): Observable<Note[]> {
+    // console.log(lastId);
+    return this.http.get<Note[]>(`http://localhost:3000/notes?start=${lastId}&count=${count}`);
   }
 }

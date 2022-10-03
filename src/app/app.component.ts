@@ -15,6 +15,7 @@ export class AppComponent {
   @ViewChild("bubble") private bubble?: ElementRef<HTMLElement>;
 
   constructor(private store: Store<AppState>, private gridService: GridService) {
+    this.store.dispatch(loadNotes({from: false, count: 100}));
   }
 
   public addNote(bubble: ColorBubble): void {
