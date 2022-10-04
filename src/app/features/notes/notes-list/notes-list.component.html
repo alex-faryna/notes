@@ -1,8 +1,9 @@
-<app-note-list-item *ngFor="let note of notes$ | async; trackBy: id" #note
+<app-note-list-item *ngFor="let note of notes$ | async; trackBy: id; let i = index" #note
                     class="note no-select"
                     [color]="note?.color"
                     [title]="note.title"
                     [content]="note.content"
                     [test]="note?.test"
                     [test2]="note?.['test2']"
+                    (click)="openNote(i, note)"
 ></app-note-list-item>

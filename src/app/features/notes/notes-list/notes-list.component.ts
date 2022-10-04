@@ -14,6 +14,8 @@ import {addNoteAnimation, AppState, loadNotes, loadNotesAnimation, notesSelector
 import {ResizeService} from "../../../shared/services/resize.service";
 import {GridService, Position} from "./services/grid.service";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
+import {MatDialog} from "@angular/material/dialog";
+import {NoteDialogComponent} from "./components/note-dialog/note-dialog.component";
 
 @Component({
   selector: 'app-notes-list',
@@ -50,6 +52,7 @@ export class NotesListComponent implements OnInit {
               private cdr: ChangeDetectorRef,
               private resize$: ResizeService,
               private gridService: GridService,
+              private dialog: MatDialog,
               private store: Store<AppState>) {
   }
 
@@ -67,6 +70,18 @@ export class NotesListComponent implements OnInit {
     ).subscribe(width => {
       this.gridService.gridChanged(width);
       this.layoutAnimation();
+    });
+  }
+
+  public openNote(idx: number, note: Note): void {
+    this.dialog.open(NoteDialogComponent, {
+      width: "500px",
+      panelClass: "dialog-container",
+      data: {
+        idx,
+        note,
+      },
+      autoFocus: "dialog",
     });
   }
 

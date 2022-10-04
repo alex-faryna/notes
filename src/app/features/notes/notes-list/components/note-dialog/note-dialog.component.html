@@ -1,0 +1,21 @@
+<div class="dialog-content" [style.background]="_color" [style.color]="textColor">
+  <p #title
+     contenteditable="true"
+     class="title editable"
+     spellcheck="false"
+     (input)="input('title', title.innerText)"
+  >{{data.note.title}}</p>
+
+  <p #content
+     contenteditable="true"
+     class="content editable"
+     spellcheck="false"
+     (input)="input('content', content.innerText)"
+  >{{data.note.content}}</p>
+</div>
+<!--
+
+keep headere in place at the top,
+also remove scroll
+
+-->

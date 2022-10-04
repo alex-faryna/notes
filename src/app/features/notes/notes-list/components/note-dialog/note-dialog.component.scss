@@ -1,0 +1,27 @@
+:host {
+  max-height: inherit;
+
+  .dialog-content {
+    max-height: inherit;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100%;
+  }
+
+  .title {
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .content {
+    white-space: pre-wrap;
+    overflow-y: auto;
+  }
+
+  [contenteditable].editable {
+    outline: 0 solid transparent;
+  }
+}

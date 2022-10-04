@@ -3,24 +3,30 @@ import {NotesListComponent} from "./notes-list.component";
 import {CommonModule} from "@angular/common";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
 import {MatCardModule} from "@angular/material/card";
-import {NoteDirective} from "./directives/note.directive";
-import {HeroBubbleComponent} from "./components/hero-bubble/hero-bubble.component";
+import {NoteDialogComponent} from "./components/note-dialog/note-dialog.component";
+import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogModule} from "@angular/material/dialog";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {MatInputModule} from "@angular/material/input";
+import {MatIconModule} from "@angular/material/icon";
 
 @NgModule({
   declarations: [
     NotesListComponent,
     NoteListItemComponent,
-    NoteDirective,
-    HeroBubbleComponent,
+    NoteDialogComponent,
   ],
   imports: [
     CommonModule,
     MatCardModule,
+    MatDialogModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatIconModule,
   ],
   providers: [],
   exports: [
     NotesListComponent,
-    HeroBubbleComponent,
   ]
 })
 export class NotesListModule {

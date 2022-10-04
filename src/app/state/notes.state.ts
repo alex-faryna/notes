@@ -15,8 +15,9 @@ export interface AppState {
 
 export const addNote = createAction("Create new empty note", props<{ bubble: ColorBubble }>());
 export const addNoteAnimation = createAction("Created note animation done", props<{ id: number }>());
-
 export const addNoteUpdateId = createAction("Update id of created note", props<{id: number}>());
+
+export const editNote = createAction("Update note's content", props<{idx: number, note: Partial<Note>}>())
 
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
 export const loadNotes = createAction("Load notes", props<{ from: number | false, count: number }>());
@@ -61,6 +62,13 @@ export const notesReducer = createReducer(
       color: bubble.color.color,
       createEvent: bubble.event,
     });
+  }),
+  immerOn(editNote, (state, {idx, note}) => {
+    state.notes[idx] = {
+      ...state.notes[idx],
+      ...note,
+      state: NoteStates.VIEW,
+    };
   }),
   on(deleteNote, (state, {id}) => ({
     ...state,
@@ -162,6 +170,12 @@ export class NotesEffects {
       map(id => addNoteUpdateId({id})),
       catchError(() => NEVER)
     )
+  );
+
+  editNote = createEffect(() => this.actions$.pipe(
+      ofType(editNote),
+      mergeMap(data => this.notesService.editNote(data.note)),
+    ), {dispatch: false},
   );
 
   constructor(

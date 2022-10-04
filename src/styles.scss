@@ -7,10 +7,24 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 @import "./assets/scss/common-classes";
+@import "./assets/scss/inputs";
+
 
 .color-bubble {
   border-radius: 50%;
   border: 1.5px solid rgba(0,0,0,0.25);
   width: 20px;
   aspect-ratio: 1;
+}
+
+.dialog-container {
+  max-height: 80vh;
+  background: none;
+
+  .mat-dialog-container {
+    box-shadow: none;
+    padding: 0;
+    background: none;
+    overflow: hidden;
+  }
 }

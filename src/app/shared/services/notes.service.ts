@@ -11,16 +11,19 @@ export class NotesService {
   constructor(private http: HttpClient) {
   }
 
-  public getAllNotes(): Observable<Note[]> {
+  private getAllNotes(): Observable<Note[]> {
     return this.http.get<Note[]>("http://localhost:3000/notes/all");
+  }
+
+  public loadNotes(lastId: number | false, count = 10): Observable<Note[]> {
+    return this.http.get<Note[]>(`http://localhost:3000/notes?start=${lastId}&count=${count}`);
   }
 
   public createNote(color: string): Observable<number> {
     return this.http.put("http://localhost:3000/notes", {color}) as Observable<number>;
   }
 
-  public loadNotes(lastId: number | false, count = 10): Observable<Note[]> {
-    // console.log(lastId);
-    return this.http.get<Note[]>(`http://localhost:3000/notes?start=${lastId}&count=${count}`);
+  public editNote(note: Partial<Note>): Observable<unknown> {
+    return this.http.post<Note[]>(`http://localhost:3000/notes`, {note});
   }
 }
