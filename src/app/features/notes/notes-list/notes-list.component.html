@@ -1,9 +1,23 @@
 <app-note-list-item *ngFor="let note of notes$ | async; trackBy: id; let i = index" #note
+                    cdkDragBoundary=".notes" cdkDrag
                     class="note no-select"
+                    [attr.data-idx]="i"
                     [color]="note?.color"
                     [title]="note.title"
                     [content]="note.content"
                     [test]="note?.test"
                     [test2]="note?.['test2']"
+                    (cdkDragMoved)="dragging$.next($event)"
+                    (cdkDragStarted)="dragStarted(i)"
                     (click)="openNote(i, note)"
 ></app-note-list-item>
+
+<!--
+set atttribute with id to html
+when releasing drag n drop then get id of the element on which it was dropped
+
+or
+
+make it so when you drag it automatically replaces ( i dont think it is a very good idea o rmb it is but it has to detec which and where at realtime
+also it means adding new State as DRAGGING in noteState
+-->

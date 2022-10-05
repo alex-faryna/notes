@@ -8,6 +8,7 @@ import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogModule} from "@angular/material/dia
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatInputModule} from "@angular/material/input";
 import {MatIconModule} from "@angular/material/icon";
+import {DragDropModule} from "@angular/cdk/drag-drop";
 
 @NgModule({
   declarations: [
@@ -15,15 +16,16 @@ import {MatIconModule} from "@angular/material/icon";
     NoteListItemComponent,
     NoteDialogComponent,
   ],
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatDialogModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatInputModule,
-    MatIconModule,
-  ],
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatDialogModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatInputModule,
+        MatIconModule,
+        DragDropModule,
+    ],
   providers: [],
   exports: [
     NotesListComponent,

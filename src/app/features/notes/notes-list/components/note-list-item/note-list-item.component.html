@@ -1,10 +1,11 @@
 <div class="note-container">
   <mat-card [style.background]="_color" [style.color]="textColor">
-    <mat-card-title>{{title}}</mat-card-title>
+    <mat-card-title *ngIf="title">{{title}}</mat-card-title>
     <mat-card-content>
       <p class="content">{{content}}</p>
       <p *ngIf="test">{{test}}</p>
       <p *ngIf="test2">{{test2}}</p>
     </mat-card-content>
   </mat-card>
+  <div class="overlay"></div>
 </div>

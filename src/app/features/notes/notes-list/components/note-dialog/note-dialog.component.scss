@@ -16,9 +16,15 @@
     margin-bottom: 20px;
   }
 
+  .title:before {
+    content: "Title";
+    // also data value heer so only when empty we use this
+  }
+
   .content {
     white-space: pre-wrap;
     overflow-y: auto;
+    font-weight: 400;
   }
 
   [contenteditable].editable {

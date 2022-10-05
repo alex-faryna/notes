@@ -4,8 +4,7 @@ export enum NoteStates {
   VIEW,
   LOADING,
   CREATING,
-  EDIT,
-  DELETING
+  DRAGGING
 }
 
 export interface Note {

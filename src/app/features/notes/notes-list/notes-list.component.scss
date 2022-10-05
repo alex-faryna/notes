@@ -10,5 +10,11 @@
     transition: transform 350ms ease-in-out;
     transform-origin: 35% 100%;
     display: block;
+
+    &.cdk-drag-dragging {
+      z-index: 10;
+      transition: none;
+      pointer-events: none;
+    }
   }
 }
