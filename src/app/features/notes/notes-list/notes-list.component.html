@@ -8,16 +8,14 @@
                     [test]="note?.test"
                     [test2]="note?.['test2']"
                     (cdkDragMoved)="dragging$.next($event)"
-                    (cdkDragStarted)="dragStarted(i)"
+                    (cdkDragStarted)="dragStarted(i, $event)"
+                    (cdkDragEnded)="dragOptions = undefined"
                     (click)="openNote(i, note)"
 ></app-note-list-item>
-
-<!--
-set atttribute with id to html
-when releasing drag n drop then get id of the element on which it was dropped
-
-or
-
-make it so when you drag it automatically replaces ( i dont think it is a very good idea o rmb it is but it has to detec which and where at realtime
-also it means adding new State as DRAGGING in noteState
--->
+<!-- div *ngIf="dragOptions as drg"
+     class="note-outline"
+     [attr.data-outline]="true"
+     [style.transform]="'translate(' + (drg.pos[0] + gridService.pos + 5) + 'px, ' + drg.pos[1] + 'px)'"
+     [style.width]="drg.size[0] - 10 + 'px'"
+     [style.height]="drg.size[1] - 10 + 'px'"
+></div -->

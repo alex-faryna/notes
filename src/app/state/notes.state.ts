@@ -21,6 +21,7 @@ export const editNote = createAction("Update note's content", props<{idx: number
 
 export const dragStarted = createAction("Started dragging note", props<{idx: number}>());
 export const dragEnded = createAction("Started dragging note", props<{idx: number}>());
+export const dragStep = createAction("Dragged but not dropped", props<{from: number, target: number}>());
 
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
 export const loadNotes = createAction("Load notes", props<{ from: number | false, count: number }>());
@@ -62,6 +63,33 @@ export const notesReducer = createReducer(
   immerOn(dragEnded, (state, {idx}) => {
     state.notes[idx].state = NoteStates.VIEW;
     // maybe something else
+  }),
+  immerOn(dragStep, (state, {from, target}) => {
+    if (from > target) {
+      const temp = state.notes[from];
+      for (let i = from; i > target;i--) {
+        state.notes[i] = {
+          ...state.notes[i - 1],
+          state: NoteStates.VIEW,
+        };
+      }
+      state.notes[target] = {
+        ...temp,
+        state: NoteStates.DRAGGING,
+      };
+    } else if (from < target) {
+      const temp = state.notes[from];
+      for (let i = from; i < target;i++) {
+        state.notes[i] = {
+          ...state.notes[i + 1],
+          state: NoteStates.VIEW,
+        };
+      }
+      state.notes[target] = {
+        ...temp,
+        state: NoteStates.DRAGGING,
+      };
+    }
   }),
   immerOn(addNote, (state, {bubble}) => {
     state.notes.unshift({
@@ -129,17 +157,17 @@ export class NotesEffects {
       ofType(loadNotes),
       concatLatestFrom(() => this.store.select(notesSelector)),
       tap(([_, notes]) => {
-        console.log("---");
-        console.log(notes);
+        //console.log("---");
+        //console.log(notes);
         const data = notes[notes.length - 1]?.id || false;
-        console.log(data);
-        console.log("---");
+        //console.log(data);
+        //console.log("---");
       }),
       map(([_, notes]) => notes[notes.length - 1]?.id || false),
       tap(vv => {
-        console.log("---");
-        console.log(vv);
-        console.log("---");
+        //console.log("---");
+        //console.log(vv);
+        //console.log("---");
       }),
       // i guess with count all and loaded count in state would be better or smth like that
       mergeMap(last => this.notesService.loadNotes(last, 6).pipe(

@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
+  ElementRef, HostBinding,
   OnInit,
   QueryList,
   ViewChildren
@@ -10,13 +10,13 @@ import {
 import {debounceTime, delay, filter, Observable, of, Subject, take, tap} from "rxjs";
 import {Note, NoteStates} from "../../../shared/models/note.model";
 import {Store} from "@ngrx/store";
-import {addNoteAnimation, AppState, loadNotesAnimation, notesSelector} from "../../../state/notes.state";
+import {addNoteAnimation, AppState, dragStep, loadNotesAnimation, notesSelector} from "../../../state/notes.state";
 import {ResizeService} from "../../../shared/services/resize.service";
 import {GridService, Position} from "./services/grid.service";
 import {NoteListItemComponent} from "./components/note-list-item/note-list-item.component";
 import {MatDialog} from "@angular/material/dialog";
 import {NoteDialogComponent} from "./components/note-dialog/note-dialog.component";
-import {CdkDragMove} from "@angular/cdk/drag-drop";
+import {CdkDragMove, CdkDragStart} from "@angular/cdk/drag-drop";
 
 @Component({
   selector: 'app-notes-list',
@@ -26,6 +26,7 @@ import {CdkDragMove} from "@angular/cdk/drag-drop";
   providers: [ResizeService],
 })
 export class NotesListComponent implements OnInit {
+  @HostBinding('attr.data-notes-list') notesListAttr = true;
   @ViewChildren("note") public notes!: QueryList<NoteListItemComponent>;
   public notes$: Observable<Note[]> = of([]);
 
@@ -48,27 +49,56 @@ export class NotesListComponent implements OnInit {
       offset: 0.85,
     },
   ];
+  public dragOptions?: {
+    pos: Position,
+    size: [number, number],
+  };
   public dragging$ = new Subject<CdkDragMove>();
+  private tempFrom?: number;
   private notesData: Note[] = [];
 
   constructor(private ref: ElementRef,
               private cdr: ChangeDetectorRef,
               private resize$: ResizeService,
-              private gridService: GridService,
+              public gridService: GridService,
               private dialog: MatDialog,
               private store: Store<AppState>) {
     this.dragging$.pipe(
-      debounceTime(200),
+      debounceTime(100),
     ).subscribe(dragging => {
 
-      const from = this.getIdInDataset(dragging.source.element.nativeElement);
-      const target = this.getIdInDataset((dragging.event.target as HTMLElement).parentElement!.parentElement!);
-      console.log(from);
-      console.log(target);
-      this.gridService.relayout(this.notes, [from, target]);
-      this.layoutAnimation(this.notesData);
+      const fromElem = dragging.source.element.nativeElement;
+      const {width, height} = fromElem.getBoundingClientRect();
+      const from = this.getIdInDataset(fromElem);
+      const targetElem = dragging.event.target as HTMLElement;
+      if (targetElem.dataset["outline"]) {
+        return;
+      } else if (targetElem.dataset["notes-list"]) {
+        console.log("notes list")
+        // then set to last
+        return;
+      }
+      const target = this.getIdInDataset(targetElem.parentElement!.parentElement!);
+      console.log(`temp from: ${this.tempFrom}`);
+      console.log(`from: ${from}`);
+      console.log(`target: ${target}`);
+
+      this.store.dispatch(dragStep({from, target}));
+
+      // just call the store thing sand that's it
+
+      // this.gridService.relayout(this.notes, [from, target]);
+      //this.layoutAnimation(this.notesData, [from, target]);
+
+      //this.gridService.relayout(this.notes, [from, target]);
+      //this.layoutAnimation(this.notesData, [from, target]);
+      /*this.dragOptions = {
+        pos: this.gridService.layout[target],
+        size: [width, height],
+      }
+      this.cdr.markForCheck();*/
+      this.tempFrom = target;
       // awesome but optimize
-      console.log(this.gridService.layout);
       // this.layoutAnimation(notes);
 
       // recalculate layout with that one note overflowing
@@ -93,8 +123,14 @@ export class NotesListComponent implements OnInit {
     });
   }
 
-  public dragStarted(idx: number): void {
-    // this.store.dispatch(dragStarted({idx}));
+  public dragStarted(idx: number, event: CdkDragStart): void {
+    const {width, height} = event.source.element.nativeElement.getBoundingClientRect();
+    this.dragOptions = {
+      pos: this.gridService.layout[idx],
+      size: [width, height],
+    }
+    this.tempFrom = idx;
+    this.cdr.markForCheck();
   }
 
   public openNote(idx: number, note: Note): void {
@@ -109,41 +145,46 @@ export class NotesListComponent implements OnInit {
     });
   }
 
-  public layoutAnimation(notes: Note[] = []): void {
+  public layoutAnimation(notes: Note[] = [], dragging?: [number, number]): void {
     const layout = this.gridService.layout;
+    // console.log(layout);
     const len = this.notes.length;
     const loadedIdx: number[] = [];
-    for (let i = 0; i < len; i++) {
-      /*const noteElem = this.notes.get(i)!.elem;
-      const note = notes[i];
-      if (note?.state === NoteStates.LOADING) {
-        loadedIdx.push(i);
-        noteElem.style.transform = this.getNotePos(layout[i]);
-        noteElem.animate(this.getLoadAnimation(layout[i]), {
-          duration: 250,
-          delay: i * 15,
-        }).onfinish = () => {
-          this.noteStylesAfterAnimation(noteElem, i * 5);
-          if (note?.loadingLast) {
-            console.log("Loaded idx");
-            console.log(loadedIdx);
-            this.store.dispatch(loadNotesAnimation({ids: loadedIdx}));
-          }
+
+    if (dragging) {
+
+      if (dragging[1] > dragging[0]) {
+        for (let i = 0; i < dragging[0];i++) {
+          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
         }
-      } else if (note?.state === NoteStates.CREATING) {
-        const duration = 250;
-        const delay = 200;
-        noteElem.style.transform = `translate(${layout[i][0] + this.gridService.pos}px, ${layout[i][1]}px)`;
-        noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration: 250, delay: 200});
-        noteElem.animate(this.createAnimation, {duration: 250, delay: 200}).onfinish = () => {
-          this.store.dispatch(addNoteAnimation({id: i}));
-          this.noteStylesAfterAnimation(noteElem);
-        };
-      } else if(note?.state !== NoteStates.DRAGGING) {
-        // no need to animate all of them, only a portion, others go directly
-        noteElem.style.transform = this.getNotePos(layout[i]);
-      }*/
-      this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
+        for (let i = dragging[0] + 1; i <= dragging[1];i++) {
+          this.noteAnimation(i, layout[i - 1], loadedIdx, notes[i]);
+        }
+        // this.dragOptions = [layout[dragging[1]], notes[dragging[0]]];
+        // console.log(this.dragOptions);
+        // this.cdr.detectChanges();
+        // this.noteAnimation(dragging[0], layout[dragging[0]], loadedIdx, notes[dragging[0]]);
+        for (let i = dragging[1] + 1; i < len;i++) {
+          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
+        }
+      } else if(dragging[0] > dragging[1]) {
+        for (let i = 0; i < dragging[1];i++) {
+          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
+        }
+        //dragging [0]
+        for (let i = dragging[1]; i < dragging[0];i++) {
+          this.noteAnimation(i, layout[i + 1], loadedIdx, notes[i]);
+        }
+
+        for (let i = dragging[0] + 1; i < len;i++) {
+          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
+        }
+
+      }
+    } else {
+      for (let i = 0; i < len; i++) {
+        this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
+      }
     }
   }
 
@@ -162,14 +203,10 @@ export class NotesListComponent implements OnInit {
       }).onfinish = () => {
         this.noteStylesAfterAnimation(noteElem, i * 5);
         if (note?.loadingLast) {
-          console.log("Loaded idx");
-          console.log(loadedIdx);
           this.store.dispatch(loadNotesAnimation({ids: loadedIdx}));
         }
       }
     } else if (note?.state === NoteStates.CREATING) {
-      const duration = 250;
-      const delay = 200;
       noteElem.style.transform = `translate(${pos[0] + this.gridService.pos}px, ${pos[1]}px)`;
       noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration: 250, delay: 200});
       noteElem.animate(this.createAnimation, {duration: 250, delay: 200}).onfinish = () => {
@@ -181,9 +218,7 @@ export class NotesListComponent implements OnInit {
       noteElem.style.transform = this.getNotePos(pos);
     }
   }
-
-  // need add item aniamtion too
-  // delete maybe too
+  // delete animation too
 
   private getLoadAnimation(position: Position): Keyframe[] {
     return [
@@ -211,6 +246,7 @@ export class NotesListComponent implements OnInit {
     this.notes$ = this.store.select(notesSelector).pipe(
       filter(notes => notes?.length > 0),
       tap(notes => setTimeout(() => {
+        console.log(notes);
         this.gridService.relayout(this.notes);
         this.layoutAnimation(notes);
         this.notesData = notes;

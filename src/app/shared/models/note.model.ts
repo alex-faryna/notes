@@ -17,6 +17,8 @@ export interface Note {
   test?: string;
   test2?: string;
 
+  draggingId?: number;
+
   state?: NoteStates;
   loadingLast?: boolean;
   createEvent?: Event;
