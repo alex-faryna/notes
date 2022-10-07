@@ -65,31 +65,18 @@ export const notesReducer = createReducer(
     // maybe something else
   }),
   immerOn(dragStep, (state, {from, target}) => {
-    if (from > target) {
-      const temp = state.notes[from];
-      for (let i = from; i > target;i--) {
-        state.notes[i] = {
-          ...state.notes[i - 1],
-          state: NoteStates.VIEW,
-        };
-      }
-      state.notes[target] = {
-        ...temp,
-        state: NoteStates.DRAGGING,
-      };
-    } else if (from < target) {
-      const temp = state.notes[from];
-      for (let i = from; i < target;i++) {
-        state.notes[i] = {
-          ...state.notes[i + 1],
-          state: NoteStates.VIEW,
-        };
-      }
-      state.notes[target] = {
-        ...temp,
-        state: NoteStates.DRAGGING,
+    const md = from > target ? -1 : 1;
+    const temp = state.notes[from];
+    for (let i = from; (from > target) ? (i > target) : (i < target);i += md) {
+      state.notes[i] = {
+        ...state.notes[i + md],
+        state: NoteStates.VIEW,
       };
     }
+    state.notes[target] = {
+      ...temp,
+      state: NoteStates.DRAGGING,
+    };
   }),
   immerOn(addNote, (state, {bubble}) => {
     state.notes.unshift({
