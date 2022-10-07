@@ -15,6 +15,7 @@
     &.cdk-drag-dragging {
       z-index: 10;
       transition: none;
+      transform: none;
       pointer-events: none;
     }
   }

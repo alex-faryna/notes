@@ -9,7 +9,7 @@
                     [test2]="note?.['test2']"
                     (cdkDragMoved)="dragging$.next($event)"
                     (cdkDragStarted)="dragStarted(i, $event)"
-                    (cdkDragEnded)="dragOptions = undefined"
+                    (cdkDragEnded)="dragEnded(i, $event)"
                     (click)="openNote(i, note)"
 ></app-note-list-item>
 <div *ngIf="dragOptions as drg"

@@ -17,8 +17,6 @@ export interface Note {
   test?: string;
   test2?: string;
 
-  draggingId?: number;
-
   state?: NoteStates;
   loadingLast?: boolean;
   createEvent?: Event;
@@ -26,4 +24,5 @@ export interface Note {
 
 export interface NotesState {
   notes: Note[];
+  draggingNoteIdx?: number;
 }

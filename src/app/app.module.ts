@@ -8,10 +8,21 @@ import {MatButtonModule} from "@angular/material/button";
 import {NotesListModule} from "./features/notes/notes-list/notes-list.module";
 import {MatIconModule} from "@angular/material/icon";
 import {SideMenuModule} from "./features/side-menu/side-menu.module";
-import { StoreModule } from '@ngrx/store';
+import {ActionReducer, MetaReducer, StoreModule} from '@ngrx/store';
 import {NotesEffects, notesReducer} from "./state/notes.state";
 import {EffectsModule} from "@ngrx/effects";
 import {HttpClientModule} from "@angular/common/http";
+
+export function debug(reducer: ActionReducer<any>): ActionReducer<any> {
+  return function(state, action) {
+    // console.log('state', state);
+    console.log('action', action.type);
+
+    return reducer(state, action);
+  };
+}
+
+export const metaReducers: MetaReducer<any>[] = [debug];
 
 @NgModule({
   declarations: [
@@ -26,7 +37,7 @@ import {HttpClientModule} from "@angular/common/http";
     NotesListModule,
     MatIconModule,
     SideMenuModule,
-    StoreModule.forRoot({notes: notesReducer}),
+    StoreModule.forRoot({notes: notesReducer}, { metaReducers }),
     EffectsModule.forRoot([NotesEffects])
   ],
   providers: [],

@@ -6,14 +6,14 @@
 }
 
 .overlay {
-  $oversize: 5px;
+  $oversize: 10px;
   position: absolute;
   top: -$oversize;
-  left: 0;
-  width: calc(100% - $oversize);
-  height: calc(100% - $oversize);
+  left: -$oversize / 2;
+  width: 100%;
+  height: 100%;
   z-index: 5;
-  // border: 1px solid red;
+  border: 1px solid red;
 }
 
 .content {

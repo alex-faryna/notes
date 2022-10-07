@@ -7,6 +7,7 @@ import {catchError, map, mergeMap} from 'rxjs/operators';
 import {NotesService} from "../shared/services/notes.service";
 import {immerOn} from "ngrx-immer/store";
 import {ColorBubble} from "../shared/models/color.model";
+import {isNumber} from "@ngrx/store/src/meta-reducers/utils";
 
 
 export interface AppState {
@@ -20,7 +21,7 @@ export const addNoteUpdateId = createAction("Update id of created note", props<{
 export const editNote = createAction("Update note's content", props<{idx: number, note: Partial<Note>}>())
 
 export const dragStarted = createAction("Started dragging note", props<{idx: number}>());
-export const dragEnded = createAction("Started dragging note", props<{idx: number}>());
+export const dragEnded = createAction("Ended dragging note");
 export const dragStep = createAction("Dragged but not dropped", props<{from: number, target: number}>());
 
 export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
@@ -38,31 +39,14 @@ const initialNotesState: NotesState = {
 
 export const notesReducer = createReducer(
   initialNotesState,
-  /*on(addNote, (state, {color}) => {
-    const note = {
-      id: 1000 + state.notes.length, // 0 or -1 which later changes to id from server and that's it
-      title: "New title " + state.notes.length,
-      content: "New content",
-      state: color === "!!!" ? NoteStates.VIEW : NoteStates.EDIT,
-      color
-    }
-    if (color === "!!!") {
-      return {
-        ...state,
-        notes: [...state.notes, note]
-      }
-    }
-    return {
-      ...state,
-      notes: [note, ...state.notes]
-    };
-  }),*/
   immerOn(dragStarted, (state, {idx}) => {
     state.notes[idx].state = NoteStates.DRAGGING;
+    state.draggingNoteIdx = idx;
   }),
-  immerOn(dragEnded, (state, {idx}) => {
-    state.notes[idx].state = NoteStates.VIEW;
-    // maybe something else
+  immerOn(dragEnded, state => {
+    if (state.draggingNoteIdx !== null && state.draggingNoteIdx !== undefined) {
+      state.notes[state.draggingNoteIdx].state = NoteStates.VIEW;
+    }
   }),
   immerOn(dragStep, (state, {from, target}) => {
     const md = from > target ? -1 : 1;
@@ -77,6 +61,7 @@ export const notesReducer = createReducer(
       ...temp,
       state: NoteStates.DRAGGING,
     };
+    state.draggingNoteIdx = target;
   }),
   immerOn(addNote, (state, {bubble}) => {
     state.notes.unshift({
