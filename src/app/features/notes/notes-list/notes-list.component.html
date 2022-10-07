@@ -12,10 +12,10 @@
                     (cdkDragEnded)="dragOptions = undefined"
                     (click)="openNote(i, note)"
 ></app-note-list-item>
-<!-- div *ngIf="dragOptions as drg"
+<div *ngIf="dragOptions as drg"
      class="note-outline"
      [attr.data-outline]="true"
      [style.transform]="'translate(' + (drg.pos[0] + gridService.pos + 5) + 'px, ' + drg.pos[1] + 'px)'"
      [style.width]="drg.size[0] - 10 + 'px'"
      [style.height]="drg.size[1] - 10 + 'px'"
-></div -->
+></div>

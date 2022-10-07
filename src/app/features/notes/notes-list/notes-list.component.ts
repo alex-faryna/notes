@@ -54,7 +54,6 @@ export class NotesListComponent implements OnInit {
     size: [number, number],
   };
   public dragging$ = new Subject<CdkDragMove>();
-  private tempFrom?: number;
   private notesData: Note[] = [];
 
   constructor(private ref: ElementRef,
@@ -71,6 +70,7 @@ export class NotesListComponent implements OnInit {
       const {width, height} = fromElem.getBoundingClientRect();
       const from = this.getIdInDataset(fromElem);
       const targetElem = dragging.event.target as HTMLElement;
+
       if (targetElem.dataset["outline"]) {
         return;
       } else if (targetElem.dataset["notes-list"]) {
@@ -79,30 +79,15 @@ export class NotesListComponent implements OnInit {
         return;
       }
       const target = this.getIdInDataset(targetElem.parentElement!.parentElement!);
-      console.log(`temp from: ${this.tempFrom}`);
       console.log(`from: ${from}`);
       console.log(`target: ${target}`);
 
-      this.store.dispatch(dragStep({from, target}));
-
-      // just call the store thing sand that's it
-
-      // this.gridService.relayout(this.notes, [from, target]);
-      //this.layoutAnimation(this.notesData, [from, target]);
-
-      //this.gridService.relayout(this.notes, [from, target]);
-      //this.layoutAnimation(this.notesData, [from, target]);
-      /*this.dragOptions = {
+      this.dragOptions = {
         pos: this.gridService.layout[target],
         size: [width, height],
       }
-      this.cdr.markForCheck();*/
-      this.tempFrom = target;
-      // awesome but optimize
-      // this.layoutAnimation(notes);
-
-      // recalculate layout with that one note overflowing
-      // and trigger animations basically without that one(so it is but not forced to place in the grid)!!!
+      this.cdr.detectChanges();
+      this.store.dispatch(dragStep({from, target}));
     });
   }
 
@@ -129,7 +114,6 @@ export class NotesListComponent implements OnInit {
       pos: this.gridService.layout[idx],
       size: [width, height],
     }
-    this.tempFrom = idx;
     this.cdr.markForCheck();
   }
 
@@ -145,46 +129,12 @@ export class NotesListComponent implements OnInit {
     });
   }
 
-  public layoutAnimation(notes: Note[] = [], dragging?: [number, number]): void {
+  public layoutAnimation(notes: Note[] = []): void {
     const layout = this.gridService.layout;
-    // console.log(layout);
     const len = this.notes.length;
     const loadedIdx: number[] = [];
-
-    if (dragging) {
-
-      if (dragging[1] > dragging[0]) {
-        for (let i = 0; i < dragging[0];i++) {
-          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
-        }
-        for (let i = dragging[0] + 1; i <= dragging[1];i++) {
-          this.noteAnimation(i, layout[i - 1], loadedIdx, notes[i]);
-        }
-        // this.dragOptions = [layout[dragging[1]], notes[dragging[0]]];
-        // console.log(this.dragOptions);
-        // this.cdr.detectChanges();
-        // this.noteAnimation(dragging[0], layout[dragging[0]], loadedIdx, notes[dragging[0]]);
-        for (let i = dragging[1] + 1; i < len;i++) {
-          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
-        }
-      } else if(dragging[0] > dragging[1]) {
-        for (let i = 0; i < dragging[1];i++) {
-          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
-        }
-        //dragging [0]
-        for (let i = dragging[1]; i < dragging[0];i++) {
-          this.noteAnimation(i, layout[i + 1], loadedIdx, notes[i]);
-        }
-
-        for (let i = dragging[0] + 1; i < len;i++) {
-          this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
-        }
-
-      }
-    } else {
-      for (let i = 0; i < len; i++) {
-        this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
-      }
+    for (let i = 0; i < len; i++) {
+      this.noteAnimation(i, layout[i], loadedIdx, notes[i]);
     }
   }
 

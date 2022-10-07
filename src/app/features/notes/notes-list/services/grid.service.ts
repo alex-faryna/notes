@@ -31,145 +31,19 @@ export class GridService {
     this.pos = Math.max(Math.floor((width - (GRID_PADDING + this.cols * NOTE_WIDTH)) / 2), 0);
   }
 
-  // for now from top to bottom relayout
-
-  public relayout3(notes: QueryList<NoteListItemComponent>, dragging?: [number, number]): void {
+  public relayout(notes: QueryList<NoteListItemComponent>): void {
     const len = notes.length;
     for (let i = 0;i < 10;i++) {
       this.columnHeights[i] = [...Array(i + 1)].map(() => /*10*/0);
       const res: Layout = [];
       const colHeights = this.columnHeights[i];
-      for (let n = 0;n < len;n++) {
+      for (let n = 0; n < len; n++) {
         const min = Math.min(...colHeights);
         const idx = colHeights.indexOf(min);
         res.push([idx * NOTE_WIDTH, min]);
-        colHeights[idx] += notes.get(this.replace(n, dragging))!.elem.clientHeight;
+        colHeights[idx] += notes.get(n)!.elem.clientHeight;
       }
       this.layouts[i] = res;
     }
-  }
-
-  public relayout(notes: QueryList<NoteListItemComponent>, dragging?: [number, number]): void {
-    const dbg: number[] = [];
-    const len = notes.length;
-    for (let i = 0;i < 10;i++) {
-      this.columnHeights[i] = [...Array(i + 1)].map(() => /*10*/0);
-      const res: Layout = [];
-      const colHeights = this.columnHeights[i];
-
-      if (dragging) {
-        if (dragging[1] > dragging[0]) {
-          for (let n = 0; n < dragging[0];n++) {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(n)!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(n)!.elem.clientHeight);
-            }
-          }
-          for(let n = dragging[0] + 1;n <= dragging[1];n++) {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(n)!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(n)!.elem.clientHeight);
-            }
-          }
-          // dragging[0]
-          {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(dragging[0])!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(dragging[0])!.elem.clientHeight);
-            }
-          }
-          for(let n = dragging[1] + 1;n < len;n++) {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(n)!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(n)!.elem.clientHeight);
-            }
-          }
-        } else if(dragging[0] > dragging[1]) {
-          for (let n = 0; n < dragging[1];n++) {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(n)!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(n)!.elem.clientHeight);
-            }
-          }
-          // dragging[0]
-          {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(dragging[0])!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(dragging[0])!.elem.clientHeight);
-            }
-          }
-
-          for(let n = dragging[1];n < dragging[0];n++) {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(n)!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(n)!.elem.clientHeight);
-            }
-          }
-
-          for(let n = dragging[0] + 1;n < len;n++) {
-            const min = Math.min(...colHeights);
-            const idx = colHeights.indexOf(min);
-            res.push([idx * NOTE_WIDTH, min]);
-            colHeights[idx] += notes.get(n)!.elem.clientHeight;
-            if (i === this.cols - 1) {
-              dbg.push(notes.get(n)!.elem.clientHeight);
-            }
-          }
-
-        }
-      } else {
-        for (let n = 0; n < len; n++) {
-          const min = Math.min(...colHeights);
-          const idx = colHeights.indexOf(min);
-          res.push([idx * NOTE_WIDTH, min]);
-          colHeights[idx] += notes.get(n)!.elem.clientHeight;
-          if (i === this.cols - 1) {
-            dbg.push(notes.get(n)!.elem.clientHeight);
-          }
-        }
-      }
-      this.layouts[i] = res;
-    }
-
-    console.log(dbg);
-    console.log(this.layouts[this.cols - 1]);
-  }
-
-  // make 3 loops:
-  // from 0 to option[0]
-  // option[1]
-  // options[0] to options[1]
-  // options[0]
-  // options[1] to end
-
-  // works but optimize
-  private replace(curr: number, options?: [number, number]): number {
-    if (curr === options?.[0]) {
-      return options[1];
-    } else if (curr === options?.[1]) {
-      return options[0];
-    }
-    return curr;
   }
 }
