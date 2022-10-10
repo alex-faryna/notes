@@ -18,13 +18,16 @@ export const addNote = createAction("Create new empty note", props<{ bubble: Col
 export const addNoteAnimation = createAction("Created note animation done", props<{ id: number }>());
 export const addNoteUpdateId = createAction("Update id of created note", props<{id: number}>());
 
-export const editNote = createAction("Update note's content", props<{idx: number, note: Partial<Note>}>())
+export const editNote = createAction("Update note's content", props<{idx: number, note: Partial<Note>}>());
+export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
+// delete and animation i guess
 
 export const dragStarted = createAction("Started dragging note", props<{idx: number}>());
 export const dragEnded = createAction("Ended dragging note");
 export const dragStep = createAction("Dragged but not dropped", props<{from: number, target: number}>());
 
-export const deleteNote = createAction("Delete note by id", props<{ id: number }>());
+
+
 export const loadNotes = createAction("Load notes", props<{ from: number | false, count: number }>());
 export const loadSuccess = createAction("Load success", props<{ notes: Note[] }>());
 export const loadNotesAnimation = createAction("Notes loaded animation done", props<{ ids: number[] }>());
@@ -59,7 +62,7 @@ export const notesReducer = createReducer(
     }
     state.notes[target] = {
       ...temp,
-      state: NoteStates.DRAGGING,
+      // state: NoteStates.DRAGGING,
     };
     state.draggingNoteIdx = target;
   }),
@@ -142,7 +145,7 @@ export class NotesEffects {
         //console.log("---");
       }),
       // i guess with count all and loaded count in state would be better or smth like that
-      mergeMap(last => this.notesService.loadNotes(last, 6).pipe(
+      mergeMap(last => this.notesService.loadNotes(last, 6 /*100*/).pipe(
         map((notes: Note[]) => notes.map(note => ({...note, state: NoteStates.LOADING}))),
         map((notes: Note[]) => {
           notes[notes.length - 1].loadingLast = true;

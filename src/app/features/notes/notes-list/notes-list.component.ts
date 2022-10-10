@@ -70,7 +70,7 @@ export class NotesListComponent implements OnInit {
               private dialog: MatDialog,
               private store: Store<AppState>) {
     this.dragging$.pipe(
-      debounceTime(100),
+      debounceTime(50),
     ).subscribe(dragging => {
       const targetElem = dragging.event.target as HTMLElement;
       if (targetElem.dataset["outline"]) {
@@ -79,7 +79,9 @@ export class NotesListComponent implements OnInit {
       const from = this.getIdInDataset(dragging.source.element.nativeElement);
       const target = targetElem.dataset["notes-list"]
         ? this.notesData.length - 1
-        : this.getIdInDataset(targetElem.parentElement!.parentElement!);
+        : (targetElem.dataset["idx"]
+          ? this.getIdInDataset(targetElem)
+          : this.getIdInDataset(targetElem.parentElement!.parentElement!));
       this.store.dispatch(dragStep({from, target}));
     });
   }
@@ -102,20 +104,20 @@ export class NotesListComponent implements OnInit {
   }
 
   public dragStarted(idx: number, event: CdkDragStart): void {
+    const pos = this.gridService.layout[idx];
+    event.source._dragRef["_initialTransform"] = `translate(${pos[0] + this.gridService.pos}px, ${pos[1]}px)`;
+    event.source._dragRef.reset();
     const {width, height} = event.source.element.nativeElement.getBoundingClientRect();
     this.dragOptions = {
-      pos: this.gridService.layout[idx],
+      pos,
       size: [width, height],
     }
     this.store.dispatch(dragStarted({idx}));
   }
 
-  public dragEnded(idx: number, event: CdkDragEnd): void {
-    setTimeout(() => {
-      // console.log(idx);
-      this.dragOptions = undefined;
-      this.store.dispatch(dragEnded());
-    }, 100);
+  public dragEnded(): void {
+    this.dragOptions = undefined;
+    this.store.dispatch(dragEnded());
   }
 
   public openNote(idx: number, note: Note): void {
@@ -202,7 +204,7 @@ export class NotesListComponent implements OnInit {
   private initNotes(): void {
     this.notes$ = this.store.select(notesSelector).pipe(
       filter(notes => notes?.length > 0),
-      debounceTime(100),
+      // debounceTime(100)
       tap(notes => setTimeout(() => {
         // console.dir(notes);
         this.gridService.relayout(this.notes);
