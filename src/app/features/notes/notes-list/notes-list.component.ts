@@ -37,6 +37,9 @@ export class NotesListComponent implements OnInit {
   @ViewChildren("note") public notes!: QueryList<NoteListItemComponent>;
   public notes$: Observable<Note[]> = of([]);
 
+  // dunno about thi but on the other side why not
+  private animating = false;
+
   private readonly createAnimation = [
     {
       scale: 0.01,
@@ -70,19 +73,23 @@ export class NotesListComponent implements OnInit {
               private dialog: MatDialog,
               private store: Store<AppState>) {
     this.dragging$.pipe(
+      filter(() => !this.animating),
       debounceTime(50),
     ).subscribe(dragging => {
       const targetElem = dragging.event.target as HTMLElement;
       if (targetElem.dataset["outline"]) {
         return;
       }
-      const from = this.getIdInDataset(dragging.source.element.nativeElement);
-      const target = targetElem.dataset["notes-list"]
+      const fromElement = dragging.source.element.nativeElement;
+      const from = this.getIdxInDataset(fromElement);
+      const targetIdx = targetElem.dataset["notes-list"]
         ? this.notesData.length - 1
         : (targetElem.dataset["idx"]
-          ? this.getIdInDataset(targetElem)
-          : this.getIdInDataset(targetElem.parentElement!.parentElement!));
-      this.store.dispatch(dragStep({from, target}));
+          ? this.getIdxInDataset(targetElem)
+          : this.getIdxInDataset(targetElem.parentElement!.parentElement!));
+      if (dragging.pointerPosition.y <= this.gridService.layout[targetIdx][1] + fromElement.clientHeight * 1.75) {
+        this.store.dispatch(dragStep({from, target: targetIdx}));
+      }
     });
   }
 
@@ -146,6 +153,7 @@ export class NotesListComponent implements OnInit {
   }
 
   private noteAnimation(i: number, pos: Position, loadedIdx: number[], note?: Note): void {
+    this.animating = true;
     const noteElem = this.notes.get(i)!.elem;
     if (note?.state === NoteStates.LOADING) {
       loadedIdx.push(i);
@@ -175,6 +183,9 @@ export class NotesListComponent implements OnInit {
     } else {
       // no need to animate all of them, only a portion, others go directly
       noteElem.style.transform = this.getNotePos(pos);
+      setTimeout(() => {
+        this.animating = false;
+      }, 200);
     }
   }
   // delete animation too
@@ -204,9 +215,7 @@ export class NotesListComponent implements OnInit {
   private initNotes(): void {
     this.notes$ = this.store.select(notesSelector).pipe(
       filter(notes => notes?.length > 0),
-      // debounceTime(100)
       tap(notes => setTimeout(() => {
-        // console.dir(notes);
         this.gridService.relayout(this.notes);
         this.layoutAnimation(notes);
         this.notesData = notes;
@@ -214,7 +223,7 @@ export class NotesListComponent implements OnInit {
     );
   }
 
-  private getIdInDataset(elem: HTMLElement): number {
+  private getIdxInDataset(elem: HTMLElement): number {
     return +elem.dataset["idx"]!;
   }
 }

@@ -145,7 +145,7 @@ export class NotesEffects {
         //console.log("---");
       }),
       // i guess with count all and loaded count in state would be better or smth like that
-      mergeMap(last => this.notesService.loadNotes(last, 6 /*100*/).pipe(
+      mergeMap(last => this.notesService.loadNotes(last, 100 /*100*/).pipe(
         map((notes: Note[]) => notes.map(note => ({...note, state: NoteStates.LOADING}))),
         map((notes: Note[]) => {
           notes[notes.length - 1].loadingLast = true;
