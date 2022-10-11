@@ -74,7 +74,7 @@ export class NotesListComponent implements OnInit {
               private store: Store<AppState>) {
     this.dragging$.pipe(
       filter(() => !this.animating),
-      debounceTime(50),
+      debounceTime(25),
     ).subscribe(dragging => {
       const targetElem = dragging.event.target as HTMLElement;
       if (targetElem.dataset["outline"]) {
@@ -185,7 +185,7 @@ export class NotesListComponent implements OnInit {
       noteElem.style.transform = this.getNotePos(pos);
       setTimeout(() => {
         this.animating = false;
-      }, 200);
+      }, 150);
     }
   }
   // delete animation too
