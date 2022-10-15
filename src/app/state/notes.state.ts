@@ -24,6 +24,7 @@ export const deleteNote = createAction("Delete note by id", props<{ id: number }
 
 export const dragStarted = createAction("Started dragging note", props<{idx: number}>());
 export const dragEnded = createAction("Ended dragging note");
+// action to remove draggingNoteIdx
 export const dragStep = createAction("Dragged but not dropped", props<{from: number, target: number}>());
 
 
@@ -35,6 +36,7 @@ export const loadNotesAnimation = createAction("Notes loaded animation done", pr
 
 export const selectNotesState = (state: AppState) => state.notes;
 export const notesSelector = createSelector(selectNotesState, state => state.notes);
+export const draggingNotes = createSelector(selectNotesState, state => [state.notes, state.draggingNoteIdx]);
 
 const initialNotesState: NotesState = {
   notes: [],
@@ -47,6 +49,7 @@ export const notesReducer = createReducer(
     state.draggingNoteIdx = idx;
   }),
   immerOn(dragEnded, state => {
+    console.log("drag end");
     if (state.draggingNoteIdx !== null && state.draggingNoteIdx !== undefined) {
       state.notes[state.draggingNoteIdx].state = NoteStates.VIEW;
     }
@@ -190,6 +193,16 @@ export class NotesEffects {
       mergeMap(data => this.notesService.editNote(data.note)),
     ), {dispatch: false},
   );
+
+  moveNote = createEffect(() => this.actions$.pipe(
+    ofType(dragEnded),
+    concatLatestFrom(() => this.store.select(draggingNotes)),
+    mergeMap(val => {
+      console.log("-----");
+      console.log(val);
+      return of(null);
+    })
+  ), {dispatch: false});
 
   constructor(
     private actions$: Actions,

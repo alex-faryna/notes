@@ -9,13 +9,13 @@
                     [test2]="note?.['test2']"
                     (cdkDragMoved)="dragging$.next($event)"
                     (cdkDragStarted)="dragStarted(i, $event)"
-                    (cdkDragEnded)="dragEnded()"
+                    (cdkDragEnded)="dragEnded(i, $event)"
                     (click)="openNote(i, note)"
 ></app-note-list-item>
 <div *ngIf="dragOptions as drg"
      class="note-outline"
      [attr.data-outline]="true"
-     [style.transform]="'translate(' + (drg.pos[0] + gridService.pos + 5) + 'px, ' + drg.pos[1] + 'px)'"
+     [style.transform]="'translate3d(' + (drg.pos[0] + gridService.pos + 5) + 'px, ' + drg.pos[1] + 'px, 0px)'"
      [style.width]="drg.size[0] - 10 + 'px'"
      [style.height]="drg.size[1] - 10 + 'px'"
 ></div>

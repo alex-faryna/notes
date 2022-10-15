@@ -111,18 +111,18 @@ export class NotesListComponent implements OnInit {
   }
 
   public dragStarted(idx: number, event: CdkDragStart): void {
-    const pos = this.gridService.layout[idx];
-    event.source._dragRef["_initialTransform"] = `translate(${pos[0] + this.gridService.pos}px, ${pos[1]}px)`;
-    event.source._dragRef.reset();
     const {width, height} = event.source.element.nativeElement.getBoundingClientRect();
     this.dragOptions = {
-      pos,
+      pos: this.gridService.layout[idx],
       size: [width, height],
     }
     this.store.dispatch(dragStarted({idx}));
   }
 
-  public dragEnded(): void {
+  public dragEnded(idx: number, event: CdkDragEnd): void {
+    const pos = this.gridService.layout[idx];
+    event.source._dragRef["_initialTransform"] = `translate3d(${pos[0] + this.gridService.pos}px, ${pos[1]}px, 0px)`;
+    event.source._dragRef.reset();
     this.dragOptions = undefined;
     this.store.dispatch(dragEnded());
   }
@@ -168,7 +168,7 @@ export class NotesListComponent implements OnInit {
         }
       }
     } else if (note?.state === NoteStates.CREATING) {
-      noteElem.style.transform = `translate(${pos[0] + this.gridService.pos}px, ${pos[1]}px)`;
+      noteElem.style.transform = `translate3d(${pos[0] + this.gridService.pos}px, ${pos[1]}px, 0px)`;
       noteElem.firstElementChild!.firstElementChild!.animate(this.childCreateAnimation, {duration: 250, delay: 200});
       noteElem.animate(this.createAnimation, {duration: 250, delay: 200}).onfinish = () => {
         this.store.dispatch(addNoteAnimation({id: i}));
@@ -204,7 +204,7 @@ export class NotesListComponent implements OnInit {
   }
 
   private getNotePos(position: Position, offset = 0): string {
-    return `translate(${position[0] + this.gridService.pos}px, ${position[1] + offset}px)`
+    return `translate3d(${position[0] + this.gridService.pos}px, ${position[1] + offset}px, 0px)`;
   }
 
   private noteStylesAfterAnimation(note: HTMLElement, delay = 0): void {

@@ -16,7 +16,7 @@ export class ResizeService extends Observable<number> implements OnDestroy {
     ));
     this.resizeObserver = new ResizeObserver(entries =>
       this.reloadTrigger.next(entries));
-    console.log(this);
+    // console.log(this);
   }
 
   public observe(elem: Element): ResizeService {
